@@ -433,8 +433,8 @@
       <div class="grid">
       <div class="main">
         <div class="card">
-          <label class="lbl" for="lab">Customer / address</label>
-          <input id="lab" value="${esc(e.label)}" placeholder="Name or address" autocomplete="off" oninput="est().label=this.value; touch(); syncTitle()">
+          <label class="lbl" for="lab">Estimate name</label>
+          <input id="lab" value="${esc(e.label)}" placeholder="Name this estimate" autocomplete="off" autocapitalize="words" enterkeyhint="done" oninput="est().label=this.value; touch(); syncTitle()">
           <label class="lbl mt">Install schedule</label>
           <div class="seg" id="sched">${CONFIG.schedule.map(t => `<button type="button" data-key="${t.key}" class="${t.key === e.schedule ? 'on' : ''}" onclick="setSched('${t.key}')">${esc(t.label)}</button>`).join('')}</div>
           <div class="cap" id="schedcap">${esc(tierOf(e).days)}</div>
@@ -479,12 +479,9 @@
             <button class="btn" type="button" onclick="useMax()">Use max</button>
           </div>
           <div class="hint" id="dstatus"></div>
-          <label class="lbl mt">Current special</label>
+          <label class="lbl mt">Current special ($)</label>
           ${CONFIG.specials.length ? `<select class="mb" onchange="pickSpecial(this)"><option value="">None</option>${CONFIG.specials.map((sp, i) => `<option value="${i}" ${o.specialName === sp.name ? 'selected' : ''}>${esc(sp.name)} &mdash; ${fmt(sp.amount)}</option>`).join('')}<option value="custom" ${o.special && !CONFIG.specials.some(sp => sp.name === o.specialName) ? 'selected' : ''}>Other</option></select>` : ''}
-          <div class="inline">
-            <input id="specname" value="${esc(o.specialName)}" placeholder="Special name" autocomplete="off" oninput="opt().specialName=this.value; touch(); updateTotal()">
-            <input id="spec" inputmode="decimal" value="${o.special || ''}" placeholder="$ off" autocomplete="off" style="max-width:120px" oninput="opt().special=num(this.value)||0; touch(); updateTotal()">
-          </div>
+          <input id="spec" inputmode="decimal" value="${o.special || ''}" placeholder="0" autocomplete="off" enterkeyhint="done" oninput="setSpecialAmt(this.value)">
           <div class="hint">Specials come off the price on top of the discount and aren't limited by the floor.</div>
           <label class="lbl mt">Utility or consumer rebates ($)</label>
           <input inputmode="decimal" value="${o.rebate || ''}" placeholder="0" autocomplete="off" oninput="opt().rebate=num(this.value)||0; touch(); updateTotal()">
@@ -585,11 +582,18 @@
     const comp = $('#comp'); if (comp) comp.innerHTML = compFields(est());
     updateTotal();
   }
+  // Typing an amount by hand drops a picked special's name unless the amount still matches it.
+  function setSpecialAmt(v) {
+    const o = opt(); o.special = num(v) || 0;
+    const p = CONFIG.specials.find(sp => sp.name === o.specialName);
+    if (!p || p.amount !== o.special) o.specialName = '';
+    touch(); updateTotal();
+  }
   function pickSpecial(sel) {
     const o = opt();
     if (sel.value === '' ) { o.special = 0; o.specialName = ''; }
     else if (sel.value !== 'custom') { const sp = CONFIG.specials[sel.value]; o.special = sp.amount; o.specialName = sp.name; }
-    touch(); const n = $('#specname'), a = $('#spec'); if (n) n.value = o.specialName; if (a) a.value = o.special || ''; updateTotal();
+    touch(); const a = $('#spec'); if (a) a.value = o.special || ''; updateTotal();
   }
   function switchOpt(i) { ui.opt = i; renderEditor(); }
   function setSched(key) {
