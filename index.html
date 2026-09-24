@@ -12,132 +12,166 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --navy: #243B55; --blue: #0083C3; --blue-deep: #0072AB; --sky: #7FB3D5; --red: #ED263A;
-    --mist: #F2F4F7; --white: #FFFFFF; --ink: #1B2A3D; --muted: #5B6B82; --faint: #98A3B3;
-    --line: #D5DBE3; --hair: #EDF0F4; --ok: #1E8E5A;
+    --mist: #F2F4F7; --ink: #1B2A3D; --muted: #5B6B82; --faint: #98A3B3; --line: #D5DBE3; --hair: #E6EAF0; --field: #EEF1F5;
+    --ok: #1E8E5A; --amber: #B7791F;
     color-scheme: light;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: var(--mist); color: var(--ink);
-    font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    -webkit-tap-highlight-color: transparent; }
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; }
 
-  .bar { background: var(--navy); color: #fff; position: sticky; top: 0; z-index: 20;
-    padding: calc(8px + env(safe-area-inset-top)) 10px 8px; }
-  .bar .inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 4px; min-height: 40px; }
-  .bar h1 { font-size: 19px; font-weight: 600; margin: 0; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 6px; }
-  .bar .spacer { flex: 1; }
-  .ibtn { height: 40px; min-width: 40px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: #fff;
-    font: inherit; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap; }
-  .ibtn:hover, .ibtn:focus-visible { background: rgba(255,255,255,.12); outline: none; }
-  .ibtn.sky { color: var(--sky); }
-  .ibtn.on { background: rgba(255,255,255,.2); }
-  .ibtn svg { width: 20px; height: 20px; }
+  /* Top bar */
+  .bar { background: var(--navy); color: #fff; position: sticky; top: 0; z-index: 20; padding: calc(6px + env(safe-area-inset-top)) 8px 6px; }
+  .bar .inner { max-width: 1040px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 44px; }
+  .bar h1 { grid-column: 2; font-size: 17px; font-weight: 600; margin: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60vw; }
+  .bar .l { grid-column: 1; justify-self: start; } .bar .r { grid-column: 3; justify-self: end; }
+  .ibtn { height: 44px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: var(--sky);
+    font: inherit; font-size: 16px; font-weight: 500; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 2px; }
+  .ibtn:active { opacity: .6; }
+  .ibtn .chev { font-size: 26px; line-height: 1; margin-top: -3px; }
 
-  .wrap { max-width: 960px; margin: 0 auto; padding: 14px 14px calc(28px + env(safe-area-inset-bottom)); }
-  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
-  .card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; color: var(--navy); display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-  .sub { font-size: 12px; font-weight: 600; color: var(--faint); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 14px 16px calc(24px + env(safe-area-inset-bottom)); }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .card { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(27,42,61,.05); }
+  .card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; color: var(--navy); display: flex; justify-content: space-between; align-items: baseline; }
+  .sub { font-size: 12px; font-weight: 500; color: var(--faint); }
 
-  input, select, textarea, button { font: inherit; font-size: 16px; color: var(--ink); }
-  input, select, textarea { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: #fff;
-    padding: 0 12px; height: 44px; transition: border-color .12s, box-shadow .12s; }
-  textarea { height: auto; min-height: 76px; padding: 10px 12px; resize: vertical; line-height: 1.35; }
-  input::placeholder, textarea::placeholder { color: var(--faint); }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,131,195,.18); }
-  input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--blue); margin: 0; }
-  select { appearance: none; -webkit-appearance: none; padding-right: 32px; background-repeat: no-repeat; background-position: right 12px center;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23243B55' stroke-width='1.8'/%3E%3C/svg%3E"); }
-  .lbl { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
-  .mt { margin-top: 10px; }
-  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .hint { font-size: 12.5px; color: var(--muted); margin-top: 8px; line-height: 1.35; }
-  .chk { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 15px; cursor: pointer; }
+  /* Fields */
+  input, select, button { font: inherit; font-size: 16px; color: var(--ink); }
+  input { width: 100%; min-width: 0; height: 46px; padding: 0 12px; border: 1px solid transparent; border-radius: 10px; background: var(--field);
+    transition: background .12s, box-shadow .12s, border-color .12s; -webkit-appearance: none; appearance: none; }
+  input::placeholder { color: var(--faint); }
+  input:focus { outline: none; background: #fff; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,131,195,.18); }
+  input:disabled { color: var(--muted); -webkit-text-fill-color: var(--muted); opacity: 1; }
+  .lbl { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+  .mt { margin-top: 12px; }
+  .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .inline { display: flex; gap: 10px; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+  .hint b { color: var(--navy); font-weight: 600; }
+  .cap { font-size: 12.5px; color: var(--muted); margin-top: 6px; text-align: center; }
 
-  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-  .chips::-webkit-scrollbar { display: none; }
-  .chip { flex: 0 0 auto; height: 38px; padding: 0 14px; border-radius: 19px; border: 1px solid var(--line); background: #fff;
-    color: var(--navy); font-weight: 600; font-size: 15px; cursor: pointer; white-space: nowrap; }
-  .chip.on { background: var(--navy); border-color: var(--navy); color: #fff; }
-  .chip.add { color: var(--blue); border-style: dashed; }
+  /* Segmented controls */
+  .seg { display: flex; background: var(--field); border-radius: 12px; padding: 3px; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .seg::-webkit-scrollbar { display: none; }
+  .seg button { flex: 1 1 0; min-width: 0; height: 38px; padding: 0 8px; border: 0; border-radius: 10px; background: transparent; color: var(--muted);
+    font-size: 14.5px; font-weight: 600; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background .12s, color .12s; }
+  .seg button.on { background: #fff; color: var(--navy); box-shadow: 0 1px 3px rgba(27,42,61,.18); }
+  .seg button:active { opacity: .7; }
+  .segrow { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .segrow .seg { flex: 1; min-width: 0; }
+  .round { flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 22px; background: #fff; color: var(--blue); font-size: 26px; line-height: 1; cursor: pointer; box-shadow: 0 1px 2px rgba(27,42,61,.08); }
+  .round:active { opacity: .6; }
 
-  .head { display: grid; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); padding: 0 12px 6px; }
-  .head.cat, .row.cat { grid-template-columns: minmax(0,1fr) 110px 70px 96px 40px; }
-  .head.lab, .row.lab { grid-template-columns: minmax(0,1fr) 90px 90px 96px 40px; }
-  .row { display: grid; gap: 8px; align-items: center; padding: 10px 0; }
+  /* Rows */
+  .head { display: none; gap: 10px; font-size: 12px; font-weight: 600; color: var(--muted); padding: 0 12px 6px; }
+  .row { display: grid; gap: 10px; padding: 12px 0; }
   .row + .row { border-top: 1px solid var(--hair); }
+  .row.cat { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 36px; grid-template-areas: "desc desc rm" "cost qty ."; align-items: end; }
+  .row.lab { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 36px; grid-template-areas: "desc desc rm" "hrs ppl ."; align-items: end; }
   .f { min-width: 0; }
-  .f .lbl { display: none; }
-  .sell { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--navy); }
-  .remove { width: 40px; height: 44px; border: 0; border-radius: 8px; background: transparent; color: var(--faint); font-size: 24px; line-height: 1; cursor: pointer; }
-  .remove:hover, .remove:focus-visible { background: rgba(237,38,58,.08); color: var(--red); outline: none; }
-  .none { color: var(--faint); font-size: 14px; padding: 4px 0 6px; }
+  .f.desc { grid-area: desc; } .f.cost { grid-area: cost; } .f.qty { grid-area: qty; } .f.hrs { grid-area: hrs; } .f.ppl { grid-area: ppl; }
+  .remove { grid-area: rm; align-self: end; width: 36px; height: 46px; border: 0; background: transparent; color: var(--faint); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .remove span { width: 26px; height: 26px; border-radius: 13px; background: var(--field); display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; color: var(--muted); }
+  .remove:active span, .remove:hover span { background: rgba(237,38,58,.1); color: var(--red); }
+  .none { color: var(--faint); font-size: 14px; padding: 6px 0 4px; }
 
-  .btnrow { display: flex; gap: 8px; margin-top: 10px; }
-  .btn { height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: #fff; color: var(--navy); font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .btn:hover, .btn:focus-visible { border-color: var(--blue); outline: none; }
-  .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
-  .btn.primary:hover { background: var(--blue-deep); }
-  .btn.ghost { border-style: dashed; color: var(--blue); flex: 1; }
+  /* Buttons */
+  .btnrow { display: flex; gap: 10px; margin-top: 12px; }
+  .btn { height: 46px; padding: 0 16px; border-radius: 12px; border: 0; background: var(--field); color: var(--navy); font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn:active { opacity: .7; }
+  .btn.primary { background: var(--blue); color: #fff; }
   .btn.danger { color: var(--red); }
   .btn.block { width: 100%; }
-  .quick { flex: 1.4; }
+  .tbtn { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--blue); font-weight: 600; cursor: pointer; margin-top: 4px; }
+  .tbtn:active { opacity: .6; }
+  .tbtn .plus { width: 24px; height: 24px; border-radius: 12px; background: var(--blue); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; }
+  .quick { flex: 1; }
 
-  .sum { display: grid; grid-template-columns: 1fr auto; row-gap: 7px; column-gap: 12px; font-variant-numeric: tabular-nums; align-items: baseline; }
+  /* Summary */
+  .sum { display: grid; grid-template-columns: 1fr auto; row-gap: 0; column-gap: 12px; font-variant-numeric: tabular-nums; align-items: baseline; }
+  .sum .k, .sum .v { padding: 9px 0; border-top: 1px solid var(--hair); }
+  .sum .k:first-child, .sum .k:first-child + .v { border-top: 0; padding-top: 2px; }
   .sum .k { color: var(--muted); }
   .sum .v { text-align: right; font-weight: 600; }
-  .sum .tot { font-size: 19px; color: var(--navy); font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
-  .sum .int { color: var(--muted); font-size: 14px; }
-  .sum .warn { color: var(--red); }
-  .sum .good { color: var(--ok); }
+  .sum .big { font-size: 20px; color: var(--navy); font-weight: 700; }
+  .good { color: var(--ok); } .warn { color: var(--amber); } .bad { color: var(--red); }
 
-  .sticky { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); background: var(--navy); color: #fff; border-radius: 12px;
-    padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 28px rgba(36,59,85,.28); }
+  /* Sticky price */
+  .sticky { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); background: var(--navy); color: #fff; border-radius: 16px;
+    padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 28px rgba(36,59,85,.32); }
   .sticky .l { font-size: 14px; color: var(--sky); font-weight: 600; }
-  .sticky .m { font-size: 13px; color: var(--sky); margin-top: 2px; }
-  .sticky .a { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sticky .m { font-size: 13px; color: var(--sky); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .sticky .m b { color: #fff; font-weight: 600; }
+  .sticky .a { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .sticky .good { color: #7EE2A8; } .sticky .warn { color: #F2C66D; } .sticky .bad { color: #FF8A94; }
 
-  .est { display: block; width: 100%; text-align: left; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; }
-  .est:hover, .est:focus-visible { border-color: var(--blue); outline: none; }
-  .est .t { font-weight: 600; font-size: 17px; color: var(--navy); }
+  /* List */
+  .est { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: #fff; border: 0; border-radius: 14px; padding: 14px 12px 14px 16px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 1px 2px rgba(27,42,61,.05); }
+  .est:active { background: var(--field); }
+  .est .body { flex: 1; min-width: 0; }
+  .est .t { font-weight: 600; font-size: 17px; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .est .d { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .est .o { margin-top: 6px; font-size: 14px; color: var(--ink); }
-  .empty { text-align: center; color: var(--muted); padding: 48px 12px; line-height: 1.5; }
-  .rates { font-size: 12.5px; color: var(--faint); text-align: center; margin-top: 18px; }
+  .est .o { margin-top: 6px; font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .est .chev { color: var(--faint); font-size: 22px; flex: 0 0 auto; }
+  .empty { text-align: center; color: var(--muted); padding: 64px 12px 24px; line-height: 1.5; }
+  .empty .big { font-size: 20px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .note { font-size: 12.5px; color: var(--faint); text-align: center; margin: 14px 0 18px; line-height: 1.4; }
+  #view.list { display: flex; flex-direction: column; min-height: calc(100vh - 56px - env(safe-area-inset-top)); min-height: calc(100dvh - 56px - env(safe-area-inset-top)); }
+  #view.list .fab { margin-top: auto; }
+  .fab { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); width: 100%; height: 50px; border: 0; border-radius: 14px; background: var(--blue); color: #fff; font-size: 17px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 28px rgba(0,131,195,.35); }
+  .fab:active { background: var(--blue-deep); }
 
-  .pgrid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-  .pcard { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px; position: relative; }
-  .pcard.rec { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(0,131,195,.15); }
-  .pcard h3 { margin: 0 0 8px; font-size: 20px; color: var(--navy); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .tag { font-size: 11px; font-weight: 700; color: #fff; background: var(--blue); border-radius: 999px; padding: 3px 10px; letter-spacing: .02em; }
-  .pcard .price { font-size: 32px; font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; line-height: 1.1; }
-  .pcard .mo { color: var(--blue); font-weight: 600; margin-top: 4px; }
-  .pcard ul { margin: 14px 0 0; padding-left: 18px; line-height: 1.45; }
-  .pcard .note { font-size: 13.5px; color: var(--muted); margin-top: 10px; }
-  .fine { font-size: 13px; color: var(--muted); text-align: center; margin: 16px 0 0; }
+  /* Sold */
+  .soldrow { display: flex; align-items: center; gap: 12px; }
+  .soldrow .emoji { font-size: 34px; line-height: 1; }
+  .soldrow .t { font-weight: 700; color: var(--blue); font-size: 17px; }
+  .soldrow .d { font-size: 13.5px; color: var(--muted); margin-top: 2px; }
+  .est .sold { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: var(--blue); border-radius: 999px; padding: 2px 9px; margin-left: 8px; vertical-align: middle; }
 
-  .modal { position: fixed; inset: 0; background: rgba(27,42,61,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  .fx { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; }
+  .fx.hidden { display: none; }
+  .fx canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .fx .pop { position: relative; background: #fff; border-radius: 24px; padding: 22px 30px 20px; text-align: center; min-width: 220px; max-width: 320px;
+    box-shadow: 0 24px 60px rgba(27,42,61,.35); animation: pop .55s cubic-bezier(.2,1.5,.45,1) both; }
+  .fx .pop .emoji { font-size: 92px; line-height: 1.05; }
+  .fx .pop .big { font-size: 28px; font-weight: 800; color: var(--navy); margin-top: 6px; letter-spacing: -.01em; }
+  .fx .pop .amt { font-size: 16px; font-weight: 600; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .fx .pop .go { font-size: 14px; font-weight: 600; color: var(--blue); margin-top: 10px; }
+  .fx .pop .big { font-size: 26px; }
+  .fx.out .pop { animation: fadeout .35s ease both; }
+  @keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes fadeout { to { transform: scale(.92); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .fx .pop { animation: none; } }
+
+  /* Sheet */
+  .modal { position: fixed; inset: 0; background: rgba(27,42,61,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; padding: 0 8px; }
   .modal.hidden { display: none; }
-  .sheet { background: #fff; width: 100%; max-width: 520px; border-radius: 16px 16px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); }
-  .sheet h3 { margin: 0 0 12px; font-size: 16px; color: var(--navy); }
-  .sheet .btn { width: 100%; margin-bottom: 8px; text-align: left; }
-  .sheet .cancel { text-align: center; color: var(--muted); border: 0; }
+  .sheet { background: var(--mist); width: 100%; max-width: 560px; border-radius: 18px 18px 0 0; padding: 14px 8px calc(10px + env(safe-area-inset-bottom)); }
+  .sheet h3 { margin: 4px 0 12px; font-size: 14px; font-weight: 600; color: var(--muted); text-align: center; }
+  .sheet .btn { width: 100%; height: 52px; margin-bottom: 8px; background: #fff; color: var(--blue); font-size: 17px; font-weight: 500; text-align: center; }
+  .sheet .btn.danger { color: var(--red); }
+  .sheet .cancel { color: var(--navy); font-weight: 600; margin-top: 4px; }
 
-  @media (max-width: 640px) {
-    .head { display: none; }
-    .row.cat { grid-template-columns: minmax(0,1fr) 84px minmax(0,1fr) 40px; grid-template-areas: "desc desc desc rm" "cost qty sell sell"; row-gap: 8px; align-items: end; }
-    .row.lab { grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 40px; grid-template-areas: "desc desc desc rm" "hrs ppl sell sell"; row-gap: 8px; align-items: end; }
-    .f.desc { grid-area: desc; } .f.cost { grid-area: cost; } .f.qty { grid-area: qty; } .f.hrs { grid-area: hrs; } .f.ppl { grid-area: ppl; }
-    .sell { grid-area: sell; align-self: end; padding-bottom: 12px; }
-    .remove { grid-area: rm; align-self: start; }
-    .f .lbl { display: block; }
-    .row { padding: 12px 0; }
+  /* Wider screens: single-line rows, header row, and a two-column editor */
+  @media (min-width: 640px) {
+    .head { display: grid; }
+    .head.cat, .row.cat { grid-template-columns: minmax(0,1fr) 130px 90px 36px; grid-template-areas: none; align-items: center; }
+    .head.lab, .row.lab { grid-template-columns: minmax(0,1fr) 110px 110px 36px; grid-template-areas: none; align-items: center; }
+    .f.desc, .f.cost, .f.qty, .f.hrs, .f.ppl, .remove { grid-area: auto; }
+    .f .lbl { display: none; }
+    .remove { align-self: center; }
+    .row { padding: 8px 0; }
+  }
+  @media (min-width: 900px) {
+    .grid { grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+    .side { position: sticky; top: calc(58px + env(safe-area-inset-top)); }
+    .sticky { display: none; }
   }
 </style>
 </head>
@@ -146,47 +180,60 @@
 <header class="bar"><div class="inner" id="bar"></div></header>
 <main class="wrap" id="view"></main>
 <div class="modal hidden" id="modal" onclick="if(event.target===this)closeModal()"></div>
+<div class="fx hidden" id="fx" onclick="endCelebration()"><canvas id="fxc"></canvas><div class="pop" id="pop"></div></div>
 
 <script>
-  // ---------- Rates and setup (edit here, then re-upload) ----------
+  // ---------- Pricing setup (edit here, then re-upload). None of this is shown on screen. ----------
   const CONFIG = {
-    markups: { equipment: 0.80, materials: 0.60, other: 0.50 },
-    laborRate: 225,        // price per person-hour
-    laborCost: 86.90,      // installer pay + burden per hour; used only for the internal margin readout
-    marginFloor: 0.30,     // margin readout turns red below this
-    roundTo: 5,            // option totals round up to the nearest $5
-    financing: [           // placeholders until real plan terms are loaded
-      { label: '120 mo at 9.99% APR', apr: 9.99, months: 120 },
-      { label: '18 mo at 0% APR', apr: 0, months: 18 }
+    markups: { equipment: 1.00, materials: 1.50, other: 1.00 },
+    laborRate: 175,        // price per person-hour
+    laborCost: 86.90,      // cost per person-hour, used for the cost and margin readout
+    defaults: { commission: 6, incentive: 2 },   // % of price; starting values for each new option, editable on the phone
+    warranty: 1,                                 // % of price, fixed; not editable on the phone
+    percentsInMargin: true,  // commission/incentive/warranty count in cost, so gross margin (and the floors) are after them
+    // Discount floors by install backlog: the lowest gross margin (after commission, incentive, warranty) each tier may go to. null = book price only.
+    enforce: true,           // true: show Allowed / Blocked against the tier's floor. false: just show the max.
+    schedule: [
+      { key: 'full',   label: 'Booked',    days: '5+ days booked',      floor: null },
+      { key: 'normal', label: 'Normal',    days: '2-4 days booked',     floor: 0.40 },
+      { key: 'light',  label: 'Light',     days: 'Under 2 days booked', floor: 0.375 },
+      { key: 'idle',   label: 'Idle crew', days: 'Open days this week', floor: 0.35, manager: true }
     ],
-    presentFootnote: 'Financing subject to credit approval.',
+    hardFloor: 0.35,         // no discount may take gross margin below this, whatever the tier says
+    roundTo: 5,            // book price rounds up to the nearest $5; a discounted price rounds to the nearest $5
+    maxRoundTo: 10,        // the max discount shown for a tier rounds to the nearest $10
     // Quick-add lists. Leave empty to hide the picker. Items: { name, cost } — labor: { name, hours, people }
     catalog: { equipment: [], materials: [], other: [], labor: [] },
-    // Starting points for a new option. Costs left blank on purpose; labor hours are editable defaults.
+    // Starting points for an option. Costs left blank on purpose; hours are editable defaults.
     templates: [
       { name: 'Furnace replacement', items: {
         equipment: [ { desc: 'Furnace', qty: 1 } ],
-        materials: [ { desc: 'Furnace install kit (venting, gas, drain, electrical)', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
-        other:     [ { desc: 'Permit', qty: 1 }, { desc: 'Haul-away', qty: 1 } ],
-        labor:     [ { desc: 'Install crew', hours: 8, people: 2 } ] } },
+        materials: [ { desc: 'Furnace install kit', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
+        other:     [],
+        labor:     [ { desc: 'Install crew', hours: 4, people: 2 } ] } },
       { name: 'AC replacement', items: {
         equipment: [ { desc: 'Condenser', qty: 1 }, { desc: 'Evaporator coil', qty: 1 } ],
-        materials: [ { desc: 'AC install kit (line set, pad, disconnect, whip, drain)', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
-        other:     [ { desc: 'Permit', qty: 1 }, { desc: 'Haul-away / refrigerant recovery', qty: 1 } ],
-        labor:     [ { desc: 'Install crew', hours: 8, people: 2 } ] } },
+        materials: [ { desc: 'AC install kit', qty: 1 }, { desc: 'Line set', qty: 1 }, { desc: 'Pad', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
+        other:     [],
+        labor:     [ { desc: 'Install crew', hours: 4, people: 2 } ] } },
       { name: 'Full system (furnace + AC)', items: {
         equipment: [ { desc: 'Furnace', qty: 1 }, { desc: 'Condenser', qty: 1 }, { desc: 'Evaporator coil', qty: 1 } ],
-        materials: [ { desc: 'System install kit', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
-        other:     [ { desc: 'Permit', qty: 1 }, { desc: 'Haul-away / refrigerant recovery', qty: 1 } ],
-        labor:     [ { desc: 'Install crew', hours: 12, people: 2 } ] } },
+        materials: [ { desc: 'System install kit', qty: 1 }, { desc: 'Line set', qty: 1 }, { desc: 'Pad', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
+        other:     [],
+        labor:     [ { desc: 'Install crew', hours: 8, people: 2 } ] } },
       { name: 'Hybrid system (heat pump + furnace)', items: {
         equipment: [ { desc: 'Heat pump condenser', qty: 1 }, { desc: 'Furnace', qty: 1 }, { desc: 'Evaporator coil', qty: 1 } ],
-        materials: [ { desc: 'System install kit', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
-        other:     [ { desc: 'Permit', qty: 1 }, { desc: 'Haul-away / refrigerant recovery', qty: 1 } ],
-        labor:     [ { desc: 'Install crew', hours: 12, people: 2 } ] } }
+        materials: [ { desc: 'System install kit', qty: 1 }, { desc: 'Line set', qty: 1 }, { desc: 'Pad', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
+        other:     [],
+        labor:     [ { desc: 'Install crew', hours: 10, people: 2 } ] } },
+      { name: 'Ductless mini-split', items: {
+        equipment: [ { desc: 'Outdoor unit', qty: 1 }, { desc: 'Indoor head', qty: 1 } ],
+        materials: [ { desc: 'Ductless install kit', qty: 1 }, { desc: 'Line set', qty: 1 }, { desc: 'Pad or wall bracket', qty: 1 } ],
+        other:     [],
+        labor:     [ { desc: 'Install crew', hours: 4, people: 2 } ] } }
     ]
   };
-  // -----------------------------------------------------------------
+  // -------------------------------------------------------------------------------------------
 
   const CATS = [
     { key: 'equipment', label: 'Equipment' },
@@ -194,9 +241,9 @@
     { key: 'other', label: 'Other direct costs' }
   ];
   const OPTION_NAMES = ['Good', 'Better', 'Best'];
-  const STORE = 'hvac-estimator.v1';
-  const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const STORE = 'hvac-estimator.v8';
 
+  // ---------- State: a list of estimates, kept on this device only ----------
   const $ = (s, el = document) => el.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const num = v => parseFloat(String(v ?? '').replace(/[^0-9.\-]/g, ''));
@@ -204,134 +251,179 @@
   const uid = () => Math.random().toString(36).slice(2, 10);
   const dateStr = t => new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  // ---------- State ----------
-  function load() { try { const r = localStorage.getItem(STORE); if (r) { const d = JSON.parse(r); if (d && Array.isArray(d.estimates)) return d; } } catch (e) {} return { estimates: [] }; }
+  function load() {
+    try { const r = localStorage.getItem(STORE); if (r) { const d = JSON.parse(r); if (d && Array.isArray(d.estimates)) return d; } } catch (e) {}
+    return { estimates: [] };
+  }
   let db = load();
-  let ui = { screen: 'list', estId: null, opt: 0, internal: false };
+  for (const e of db.estimates) if (e.sold && !e.crm) { e.crm = { at: e.sold.at, options: [{ name: e.sold.name, price: e.sold.price }] }; delete e.sold; }
+  let ui = { screen: 'list', estId: null, opt: 0 };
   let saveTimer;
   function save() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(STORE, JSON.stringify(db)); } catch (e) {} }, 150); }
-  function touch() { const e = est(); if (e) e.updated = Date.now(); save(); }
   const est = () => db.estimates.find(x => x.id === ui.estId);
   const opt = () => est().options[ui.opt];
+  function touch() { const e = est(); if (e) e.updated = Date.now(); save(); }
 
   function newOption(name, tpl) {
-    const o = { id: uid(), name, includes: '', rec: false, discount: 0, rebate: 0, items: { equipment: [], materials: [], other: [], labor: [] } };
+    const o = { id: uid(), name, items: { equipment: [], materials: [], other: [], labor: [] },
+      commission: CONFIG.defaults.commission, incentive: CONFIG.defaults.incentive, discount: 0 };
     if (tpl) {
       for (const c of CATS) o.items[c.key] = (tpl.items[c.key] || []).map(i => ({ id: uid(), desc: i.desc || '', cost: i.cost || 0, qty: i.qty ?? 1 }));
       o.items.labor = (tpl.items.labor || []).map(i => ({ id: uid(), desc: i.desc || '', hours: i.hours || 0, people: i.people ?? 1 }));
-      if (tpl.includes) o.includes = tpl.includes;
     }
     return o;
   }
   function cloneOption(o, name) {
-    const c = JSON.parse(JSON.stringify(o)); c.id = uid(); c.name = name; c.rec = false;
+    const c = JSON.parse(JSON.stringify(o)); c.id = uid(); c.name = name;
     for (const k in c.items) c.items[k].forEach(i => i.id = uid());
     return c;
   }
-  function nextName(e) { return OPTION_NAMES[e.options.length] || ('Option ' + (e.options.length + 1)); }
+  const nextName = e => OPTION_NAMES[e.options.length] || ('Option ' + (e.options.length + 1));
 
-  // ---------- Math ----------
-  const lineSell = (cat, it) => (num(it.cost) || 0) * (1 + CONFIG.markups[cat]) * (num(it.qty) || 0);
-  const lineCost = it => (num(it.cost) || 0) * (num(it.qty) || 0);
-  const laborHours = it => (num(it.hours) || 0) * (num(it.people) || 0);
+  // ---------- Price, cost, margin, max discount ----------
   const roundUp = n => CONFIG.roundTo > 0 ? Math.ceil(n / CONFIG.roundTo - 1e-9) * CONFIG.roundTo : n;
-  function calc(o) {
-    const r = { equipment: 0, materials: 0, other: 0, labor: 0, laborHours: 0, cost: 0 };
-    for (const c of CATS) for (const it of o.items[c.key]) { r[c.key] += lineSell(c.key, it); r.cost += lineCost(it); }
-    for (const it of o.items.labor) { const h = laborHours(it); r.laborHours += h; r.labor += h * CONFIG.laborRate; r.cost += h * CONFIG.laborCost; }
-    r.subtotal = r.equipment + r.materials + r.other + r.labor;
-    r.discount = num(o.discount) || 0; r.rebate = num(o.rebate) || 0;
-    r.total = Math.max(0, roundUp(r.subtotal) - r.discount);
-    r.net = Math.max(0, r.total - r.rebate);
-    r.gp = r.total - r.cost; r.gm = r.total > 0 ? r.gp / r.total : 0;
-    return r;
+  const roundDown = n => CONFIG.roundTo > 0 ? Math.floor(n / CONFIG.roundTo + 1e-9) * CONFIG.roundTo : Math.floor(n);
+  const roundNear = (n, step = CONFIG.roundTo) => step > 0 ? Math.round(n / step) * step : Math.round(n);
+  const pct = v => (num(v) || 0) / 100;
+  const tierOf = e => CONFIG.schedule.find(t => t.key === e.schedule) || CONFIG.schedule[0];
+  function calc(e, o) {
+    let direct = 0, priced = 0, hours = 0;
+    for (const c of CATS) for (const it of o.items[c.key]) { const x = (num(it.cost) || 0) * (num(it.qty) || 0); direct += x; priced += x * (1 + CONFIG.markups[c.key]); }
+    for (const it of o.items.labor) { const h = (num(it.hours) || 0) * (num(it.people) || 0); hours += h; priced += h * CONFIG.laborRate; direct += h * CONFIG.laborCost; }
+    const tier = tierOf(e);
+    if (priced <= 0) return { empty: true, tier, price: 0, list: 0, cost: 0, gp: 0, gm: 0, hours, disc: 0, maxDisc: 0, status: '' };
+    const permit = num(e.permit) || 0;
+    const kAll = pct(o.commission) + pct(o.incentive) + pct(CONFIG.warranty);   // costs that scale with the price
+    const k = CONFIG.percentsInMargin ? kAll : 0;
+    const fixed = direct + permit;
+    const list = roundUp(priced + permit);
+    const entered = Math.min(Math.max(num(o.discount) || 0, 0), list);
+    const price = entered > 0 ? roundNear(list - entered) : list;   // final price keeps a $5 ending
+    const disc = list - price;                                     // the discount actually applied
+    const cost = fixed + price * k;
+    const gm = price > 0 ? (price - cost) / price : 0;
+    const listGm = (list - fixed - list * k) / list;
+    const pctCosts = price * kAll;
+    // Max discount for the tier, rounded to the nearest $10 (see maxRoundTo)
+    let maxDisc = 0, belowFloor = false, floorPct = '';
+    if (tier.floor != null) {
+      const floor = Math.max(tier.floor, CONFIG.hardFloor || 0);
+      floorPct = (floor * 100).toFixed(1) + '%';
+      belowFloor = listGm < floor - 1e-9;
+      // gm(P) = 1 - k - fixed/P  =>  lowest price P = fixed / (1 - k - floor)
+      if (1 - k - floor > 0) maxDisc = roundNear(Math.max(0, list - fixed / (1 - k - floor)), CONFIG.maxRoundTo);
+    }
+    const noDisc = tier.floor == null;
+    const over = disc > maxDisc + 0.005;
+    const status = !CONFIG.enforce || disc <= 0 ? '' : over ? 'bad' : tier.manager ? 'warn' : 'good';
+    return { tier, price, list, cost, gp: price - cost, gm, listGm, hours, disc, entered, maxDisc, noDisc, belowFloor, floorPct, over, status, pctCosts };
   }
-  function payment(P, apr, months) { if (!P || !months) return 0; const r = apr / 100 / 12; return r === 0 ? P / months : P * r / (1 - Math.pow(1 + r, -months)); }
-  function bestPlan(P) { let best = null; for (const p of CONFIG.financing || []) { const m = payment(P, p.apr, p.months); if (P > 0 && (!best || m < best.monthly)) best = { plan: p, monthly: m }; } return best; }
+  const gmText = r => r.empty ? '' : (r.gm * 100).toFixed(1) + '%';
+  const pctOf = (a, b) => b > 0 ? (a / b * 100).toFixed(1) + '%' : '';
 
   // ---------- Navigation ----------
-  function render() { window.scrollTo(0, 0); if (ui.screen === 'edit') renderEditor(); else if (ui.screen === 'present') renderPresent(); else renderList(); }
+  function render() { window.scrollTo(0, 0); if (ui.screen === 'edit' && est()) renderEditor(); else renderList(); }
   function goList() { ui.screen = 'list'; ui.estId = null; render(); }
-  function goEdit() { ui.screen = 'edit'; render(); }
-  function goPresent() { ui.screen = 'present'; render(); }
   function openEst(id) { ui.estId = id; ui.opt = 0; ui.screen = 'edit'; render(); }
-  function newEst() {
-    const e = { id: uid(), label: '', created: Date.now(), updated: Date.now(), options: [newOption('Good')] };
-    db.estimates.unshift(e); save(); openEst(e.id);
+  function newEstimate() {
+    const e = { id: uid(), label: '', created: Date.now(), updated: Date.now(), permit: 0, schedule: CONFIG.schedule[0].key, options: [newOption('Good')] };
+    db.estimates.unshift(e); save(); openEst(e.id); openAddOption(true);
   }
-  function delEst() { if (!confirm('Delete this estimate?')) return; db.estimates = db.estimates.filter(x => x.id !== ui.estId); save(); goList(); }
-  function toggleInternal() { ui.internal = !ui.internal; renderEditor(); }
+  function delEstimate() { ask('Delete this estimate?', 'Delete estimate', () => { db.estimates = db.estimates.filter(x => x.id !== ui.estId); save(); goList(); }); }
 
   // ---------- List ----------
   function renderList() {
-    $('#bar').innerHTML = `<h1>HVAC Estimator</h1><button class="ibtn sky" onclick="newEst()">+ New</button>`;
+    $('#view').classList.add('list');
+    $('#bar').innerHTML = `<span class="l"></span><h1>HVAC Estimator</h1><span class="r"></span>`;
     const list = [...db.estimates].sort((a, b) => b.updated - a.updated);
-    const m = CONFIG.markups;
     $('#view').innerHTML = (list.length ? list.map(e => `
       <button class="est" onclick="openEst('${e.id}')">
-        <div class="t">${esc(e.label) || 'Untitled estimate'}</div>
-        <div class="d">${dateStr(e.updated)}</div>
-        <div class="o">${e.options.map(o => `${esc(o.name)} ${fmt(calc(o).total)}`).join(' &middot; ')}</div>
-      </button>`).join('') : `<div class="empty">No estimates yet.<br>Tap <b>+ New</b> to start one.</div>`) +
-      `<div class="rates">Equipment ${Math.round(m.equipment * 100)}% &middot; Materials ${Math.round(m.materials * 100)}% &middot; Other ${Math.round(m.other * 100)}% &middot; Labor $${CONFIG.laborRate}/hr</div>`;
+        <div class="body">
+          <div class="t">${e.crm ? '&#127942; ' : ''}${esc(e.label) || 'Untitled estimate'}${e.crm ? '<span class="sold">In CRM</span>' : ''}</div>
+          <div class="d">${dateStr(e.updated)}</div>
+          <div class="o">${e.options.map((o, i) => { const r = calc(e, o); return `${esc(o.name) || 'Option ' + (i + 1)} ${fmt(r.price)}${r.empty ? '' : ` <span class="${r.status}">${gmText(r)}</span>`}`; }).join(' &middot; ')}</div>
+        </div>
+        <span class="chev">&#8250;</span>
+      </button>`).join('') : `<div class="empty"><div class="big">No estimates yet</div>Start one and pick a template.</div>`)
+      + `<div class="note">Estimates are stored on this device only.</div>`
+      + `<button class="fab" onclick="newEstimate()">New estimate</button>`;
   }
 
   // ---------- Editor ----------
   function renderEditor() {
-    const e = est(); if (!e) return goList();
+    $('#view').classList.remove('list');
+    const e = est();
     if (ui.opt >= e.options.length) ui.opt = e.options.length - 1;
     const o = opt();
     $('#bar').innerHTML = `
-      <button class="ibtn" onclick="goList()">&#8249; Estimates</button>
-      <div class="spacer"></div>
-      <button class="ibtn ${ui.internal ? 'on' : ''}" aria-label="Show cost and margin" onclick="toggleInternal()">${EYE}</button>
-      <button class="ibtn sky" onclick="goPresent()">Present</button>
-      <button class="ibtn" aria-label="More" onclick="openMenu()">&#8943;</button>`;
+      <button class="ibtn l" onclick="goList()"><span class="chev">&#8249;</span>Estimates</button>
+      <h1>${esc(e.label) || 'Estimate'}</h1>
+      <button class="ibtn r" onclick="delEstimate()">Delete</button>`;
     $('#view').innerHTML = `
-      <div class="card">
-        <label class="lbl" for="lab">Customer / job</label>
-        <input id="lab" value="${esc(e.label)}" placeholder="Name or address" autocomplete="off" oninput="est().label=this.value; touch()">
-      </div>
-      <div class="chips" id="chips">
-        ${e.options.map((op, i) => `<button class="chip ${i === ui.opt ? 'on' : ''}" onclick="switchOpt(${i})">${esc(op.name) || 'Option ' + (i + 1)}</button>`).join('')}
-        <button class="chip add" onclick="openAddOption()">+ Option</button>
-      </div>
-      <div class="card">
-        <h2>Option <span class="sub">${ui.opt + 1} of ${e.options.length}</span></h2>
-        <label class="lbl">Option name</label>
-        <input value="${esc(o.name)}" placeholder="Good, Better, Best..." autocomplete="off" oninput="opt().name=this.value; touch(); syncChip()">
-        <label class="lbl mt">What's included (customer-facing, one per line)</label>
-        <textarea placeholder="96% two-stage furnace&#10;Smart thermostat&#10;10-year parts warranty" oninput="opt().includes=this.value; touch()">${esc(o.includes)}</textarea>
-        <label class="chk"><input type="checkbox" ${o.rec ? 'checked' : ''} onchange="opt().rec=this.checked; touch()"> Mark as recommended</label>
-        <div class="btnrow">
-          <button class="btn" onclick="dupOption()">Duplicate option</button>
-          <button class="btn danger" onclick="delOption()">Delete</button>
+      <div class="grid">
+      <div class="main">
+        <div class="card">
+          <label class="lbl" for="lab">Customer / address</label>
+          <input id="lab" value="${esc(e.label)}" placeholder="Name or address" autocomplete="off" oninput="est().label=this.value; touch(); syncTitle()">
+          <label class="lbl mt">Install schedule</label>
+          <div class="seg" id="sched">${CONFIG.schedule.map(t => `<button type="button" data-key="${t.key}" class="${t.key === e.schedule ? 'on' : ''}" onclick="setSched('${t.key}')">${esc(t.label)}</button>`).join('')}</div>
+          <div class="cap" id="schedcap">${esc(tierOf(e).days)}</div>
         </div>
-      </div>
-      ${CATS.map(c => catCard(c, o)).join('')}
-      ${laborCard(o)}
-      <div class="card">
-        <h2>Adjustments</h2>
-        <div class="two">
-          <div><label class="lbl">Discount ($)</label><input inputmode="decimal" value="${o.discount || ''}" placeholder="0" oninput="opt().discount=num(this.value)||0; touch(); updateTotals()"></div>
-          <div><label class="lbl">Rebates ($)</label><input inputmode="decimal" value="${o.rebate || ''}" placeholder="0" oninput="opt().rebate=num(this.value)||0; touch(); updateTotals()"></div>
+        <div class="segrow">
+          <div class="seg" id="chips">${e.options.map((op, i) => `<button type="button" class="chip ${i === ui.opt ? 'on' : ''}" onclick="switchOpt(${i})">${esc(op.name) || 'Option ' + (i + 1)}</button>`).join('')}</div>
+          <button class="round" type="button" aria-label="Add option" onclick="openAddOption()">+</button>
         </div>
-        <div class="hint">A discount lowers the price. Rebates don't change the price; they're shown as money back to the customer after the job.</div>
+        <div class="card">
+          <label class="lbl">Option name</label>
+          <input value="${esc(o.name)}" placeholder="Good, Better, Best..." autocomplete="off" oninput="opt().name=this.value; touch(); syncChip()">
+          <div class="btnrow">
+            <button class="btn" onclick="dupOption()">Duplicate option</button>
+            <button class="btn danger" onclick="delOption()">${e.options.length > 1 ? 'Delete option' : 'Clear option'}</button>
+          </div>
+        </div>
+        ${CATS.map(c => catCard(c, o)).join('')}
+        ${laborCard(o)}
       </div>
-      <div class="card" id="summary"></div>
+      <div class="side">
+        <div class="card">
+          <h2>Permit</h2>
+          <label class="lbl" for="permit">Permit fee ($)</label>
+          <input id="permit" inputmode="decimal" value="${e.permit || ''}" placeholder="0" autocomplete="off" oninput="est().permit=num(this.value)||0; touch(); updateTotal()">
+          <div class="hint">Flat fee for this city; added to the price and the cost as-is. Applies to every option on this estimate.</div>
+        </div>
+        <div class="card">
+          <h2>Commission, incentive, warranty</h2>
+          <div class="three">
+            <div><label class="lbl">Commission %</label><input inputmode="decimal" value="${o.commission ?? ''}" placeholder="0" autocomplete="off" oninput="opt().commission=num(this.value)||0; touch(); updateTotal()"></div>
+            <div><label class="lbl">Incentive %</label><input inputmode="decimal" value="${o.incentive ?? ''}" placeholder="0" autocomplete="off" oninput="opt().incentive=num(this.value)||0; touch(); updateTotal()"></div>
+            <div><label class="lbl">Warranty % <span class="sub">fixed</span></label><input value="${CONFIG.warranty}" disabled></div>
+          </div>
+          <div class="hint">Percent of the price, counted as cost. They lower the margin; they don't change the price.</div>
+        </div>
+        <div class="card">
+          <h2>Discount</h2>
+          <div class="hint" id="auth" style="margin-top:0"></div>
+          <label class="lbl mt">Discount ($)</label>
+          <div class="inline">
+            <input id="disc" inputmode="decimal" value="${o.discount || ''}" placeholder="0" autocomplete="off" oninput="opt().discount=num(this.value)||0; touch(); updateTotal()">
+            <button class="btn" type="button" onclick="useMax()">Use max</button>
+          </div>
+          <div class="hint" id="dstatus"></div>
+        </div>
+        <div class="card" id="margin"></div>
+        <div class="card" id="soldcard"></div>
+      </div>
+      </div>
       <div class="sticky" id="sticky"></div>`;
-    updateTotals();
+    updateTotal(); renderSold();
   }
-
   function catCard(c, o) {
-    const items = o.items[c.key];
-    const cat = CONFIG.catalog[c.key] || [];
-    return `<div class="card">
-      <h2>${c.label} ${ui.internal ? `<span class="sub">${Math.round(CONFIG.markups[c.key] * 100)}% markup</span>` : ''}</h2>
-      <div class="head cat"><div>Description</div><div>Cost</div><div>Qty</div><div style="text-align:right">Price</div><div></div></div>
+    const items = o.items[c.key], cat = CONFIG.catalog[c.key] || [];
+    return `<div class="card"><h2>${c.label}</h2>
+      <div class="head cat"><div>Description</div><div>Cost</div><div>Qty</div><div></div></div>
       ${items.map(it => catRow(c.key, it)).join('') || '<div class="none">Nothing added yet.</div>'}
       <div class="btnrow">
-        <button class="btn ghost" onclick="addItem('${c.key}')">+ Add item</button>
+        <button class="tbtn" onclick="addItem('${c.key}')"><span class="plus">+</span>Add item</button>
         ${cat.length ? `<select class="quick" onchange="quickAdd('${c.key}', this)"><option value="">Quick add&hellip;</option>${cat.map((q, i) => `<option value="${i}">${esc(q.name)}</option>`).join('')}</select>` : ''}
       </div></div>`;
   }
@@ -340,61 +432,68 @@
       <div class="f desc"><span class="lbl">Description</span><input value="${esc(it.desc)}" placeholder="Description" autocomplete="off" oninput="setItem('${cat}','${it.id}','desc',this.value)"></div>
       <div class="f cost"><span class="lbl">Cost</span><input inputmode="decimal" value="${it.cost || ''}" placeholder="0.00" autocomplete="off" oninput="setItem('${cat}','${it.id}','cost',this.value)"></div>
       <div class="f qty"><span class="lbl">Qty</span><input inputmode="decimal" value="${it.qty ?? 1}" autocomplete="off" oninput="setItem('${cat}','${it.id}','qty',this.value)"></div>
-      <div class="sell" data-sell>${fmt(lineSell(cat, it))}</div>
-      <button class="remove" onclick="removeItem('${cat}','${it.id}')" aria-label="Remove">&times;</button>
+      <button class="remove" onclick="removeItem('${cat}','${it.id}')" aria-label="Remove"><span>&times;</span></button>
     </div>`;
   }
   function laborCard(o) {
-    const items = o.items.labor;
-    const cat = CONFIG.catalog.labor || [];
-    return `<div class="card">
-      <h2>Labor <span class="sub">$${CONFIG.laborRate}/hr per person</span></h2>
-      <div class="head lab"><div>Description</div><div>Hours</div><div>People</div><div style="text-align:right">Price</div><div></div></div>
+    const items = o.items.labor, cat = CONFIG.catalog.labor || [];
+    return `<div class="card"><h2>Labor</h2>
+      <div class="head lab"><div>Description</div><div>Hours each</div><div>People</div><div></div></div>
       ${items.map(it => laborRow(it)).join('') || '<div class="none">Nothing added yet.</div>'}
       <div class="btnrow">
-        <button class="btn ghost" onclick="addItem('labor')">+ Add labor</button>
+        <button class="tbtn" onclick="addItem('labor')"><span class="plus">+</span>Add labor</button>
         ${cat.length ? `<select class="quick" onchange="quickAdd('labor', this)"><option value="">Quick add&hellip;</option>${cat.map((q, i) => `<option value="${i}">${esc(q.name)}</option>`).join('')}</select>` : ''}
       </div></div>`;
   }
   function laborRow(it) {
     return `<div class="row lab" data-id="${it.id}">
       <div class="f desc"><span class="lbl">Description</span><input value="${esc(it.desc)}" placeholder="Install crew" autocomplete="off" oninput="setItem('labor','${it.id}','desc',this.value)"></div>
-      <div class="f hrs"><span class="lbl">Hours</span><input inputmode="decimal" value="${it.hours || ''}" placeholder="0" autocomplete="off" oninput="setItem('labor','${it.id}','hours',this.value)"></div>
+      <div class="f hrs"><span class="lbl">Hours each</span><input inputmode="decimal" value="${it.hours || ''}" placeholder="0" autocomplete="off" oninput="setItem('labor','${it.id}','hours',this.value)"></div>
       <div class="f ppl"><span class="lbl">People</span><input inputmode="numeric" value="${it.people ?? 1}" autocomplete="off" oninput="setItem('labor','${it.id}','people',this.value)"></div>
-      <div class="sell" data-sell>${fmt(laborHours(it) * CONFIG.laborRate)}</div>
-      <button class="remove" onclick="removeItem('labor','${it.id}')" aria-label="Remove">&times;</button>
+      <button class="remove" onclick="removeItem('labor','${it.id}')" aria-label="Remove"><span>&times;</span></button>
     </div>`;
   }
-
-  function updateTotals() {
-    const o = opt(); const r = calc(o); const fin = bestPlan(r.total);
-    const gmClass = r.total > 0 ? (r.gm < CONFIG.marginFloor ? 'warn' : 'good') : '';
-    $('#summary').innerHTML = `<h2>Summary <span class="sub">${esc(o.name)}</span></h2><div class="sum">
-      <div class="k">Equipment</div><div class="v">${fmt(r.equipment)}</div>
-      <div class="k">Materials</div><div class="v">${fmt(r.materials)}</div>
-      <div class="k">Other direct costs</div><div class="v">${fmt(r.other)}</div>
-      <div class="k">Labor <span class="sub">${+r.laborHours.toFixed(1)} hrs</span></div><div class="v">${fmt(r.labor)}</div>
-      ${r.discount ? `<div class="k">Discount</div><div class="v">&minus;${fmt(r.discount)}</div>` : ''}
-      <div class="k tot">Total</div><div class="v tot">${fmt(r.total)}</div>
-      ${fin ? `<div class="k">Monthly from</div><div class="v">${fmt(fin.monthly)}/mo <span class="sub">${esc(fin.plan.label)}</span></div>` : ''}
-      ${r.rebate ? `<div class="k">After rebates</div><div class="v">${fmt(r.net)}</div>` : ''}
-      ${ui.internal ? `
-        <div class="k int">Cost</div><div class="v int">${fmt(r.cost)}</div>
-        <div class="k int">Gross profit</div><div class="v int">${fmt(r.gp)}</div>
-        <div class="k int">Gross margin</div><div class="v int ${gmClass}">${(r.gm * 100).toFixed(1)}%</div>` : ''}
+  function updateTotal() {
+    const e = est(), o = opt(), r = calc(e, o), t = r.tier, name = esc(o.name) || 'Option ' + (ui.opt + 1);
+    let auth = `<b>${esc(t.label)}</b> (${esc(t.days).toLowerCase()}): `;
+    if (r.noDisc) auth += 'book price, no discount.';
+    else if (r.empty) auth += `down to ${r.floorPct} gross margin${t.manager ? ', manager only' : ''}.`;
+    else if (r.belowFloor) auth += `<span class="bad">book price is already below the ${r.floorPct} floor, so there is no discount room.</span>`;
+    else auth += `max discount on this job <b>${fmt(r.maxDisc)}</b> (${pctOf(r.maxDisc, r.list)}), which makes it <b>${fmt(r.list - r.maxDisc)}</b> at ${r.floorPct} gross margin${t.manager ? ', manager only' : ''}.`;
+    $('#auth').innerHTML = auth;
+    let st = '';
+    if (!r.empty && r.entered > 0 && Math.abs(r.disc - r.entered) > 0.005) st = `Applied as ${fmt(r.disc)} so the price ends in 0 or 5. `;
+    if (CONFIG.enforce && !r.empty && r.disc > 0) {
+      if (r.noDisc) st += `<span class="bad">Blocked: no discounts when booked out.</span>`;
+      else if (r.over) st += `<span class="bad">Blocked: below the ${r.floorPct} floor. Max is ${fmt(r.maxDisc)}.</span>`;
+      else if (t.manager) st += `<span class="warn">Allowed with manager approval.</span>`;
+      else st += `<span class="good">Allowed.</span>`;
+    }
+    $('#dstatus').innerHTML = st;
+    $('#margin').innerHTML = `<h2>Cost and margin <span class="sub">${name}</span></h2><div class="sum">
+      <div class="k">Cost <span class="sub">${+r.hours.toFixed(1)} labor hrs${r.empty ? '' : ` &middot; incl. ${fmt(r.pctCosts)} commission, incentive, warranty`}</span></div><div class="v">${fmt(r.cost)}</div>
+      ${r.disc > 0 ? `<div class="k">Book price</div><div class="v">${fmt(r.list)}</div><div class="k">Discount</div><div class="v">&minus;${fmt(r.disc)} <span class="sub">${pctOf(r.disc, r.list)}</span></div>` : ''}
+      <div class="k">Price</div><div class="v">${fmt(r.price)}</div>
+      <div class="k">Gross profit</div><div class="v">${fmt(r.gp)}</div>
+      <div class="k big">Gross margin</div><div class="v big ${r.status}">${r.empty ? '&ndash;' : gmText(r)}</div>
     </div>`;
-    $('#sticky').innerHTML = `<div><div class="l">${esc(o.name) || 'Option'}</div>${fin ? `<div class="m">from ${fmt(fin.monthly)}/mo</div>` : ''}</div><div class="a">${fmt(r.total)}</div>`;
+    $('#sticky').innerHTML = `<div><div class="l">${name}</div><div class="m">Cost <b>${fmt(r.cost)}</b> &middot; GM <b class="${r.status}">${r.empty ? '&ndash;' : gmText(r)}</b></div></div><div class="a">${fmt(r.price)}</div>`;
   }
+  function useMax() { const r = calc(est(), opt()); opt().discount = r.maxDisc; touch(); const i = $('#disc'); if (i) i.value = r.maxDisc || ''; updateTotal(); }
 
   // ---------- Editor actions ----------
   function switchOpt(i) { ui.opt = i; renderEditor(); }
-  function syncChip() { const c = $('#chips .chip.on'); if (c) c.textContent = opt().name || 'Option ' + (ui.opt + 1); }
+  function setSched(key) {
+    est().schedule = key; touch();
+    document.querySelectorAll('#sched button').forEach(b => b.classList.toggle('on', b.dataset.key === key));
+    const cap = $('#schedcap'); if (cap) cap.textContent = tierOf(est()).days;
+    updateTotal();
+  }
+  function syncTitle() { const h = $('#bar h1'); if (h) h.textContent = est().label || 'Estimate'; }
+  function syncChip() { const c = $('#chips .chip.on'); if (c) c.textContent = opt().name || 'Option ' + (ui.opt + 1); updateTotal(); renderSold(); }
   function setItem(cat, id, k, v) {
     const it = opt().items[cat].find(x => x.id === id); if (!it) return;
-    it[k] = k === 'desc' ? v : (num(v) || 0); touch();
-    const cell = document.querySelector(`.row[data-id="${id}"] [data-sell]`);
-    if (cell) cell.textContent = fmt(cat === 'labor' ? laborHours(it) * CONFIG.laborRate : lineSell(cat, it));
-    updateTotals();
+    it[k] = k === 'desc' ? v : (num(v) || 0); touch(); updateTotal();
   }
   function addItem(cat, preset) {
     const it = cat === 'labor'
@@ -409,74 +508,95 @@
   function dupOption() { const e = est(); e.options.splice(ui.opt + 1, 0, cloneOption(opt(), nextName(e))); ui.opt++; touch(); renderEditor(); }
   function delOption() {
     const e = est();
-    if (e.options.length === 1) { if (!confirm('Clear everything in this option?')) return; e.options[0] = newOption(e.options[0].name); }
-    else { if (!confirm('Delete this option?')) return; e.options.splice(ui.opt, 1); ui.opt = Math.max(0, ui.opt - 1); }
-    touch(); renderEditor();
+    if (e.options.length === 1) ask('Clear everything in this option?', 'Clear option', () => { e.options[0] = newOption(e.options[0].name); touch(); renderEditor(); });
+    else ask('Delete this option?', 'Delete option', () => { e.options.splice(ui.opt, 1); ui.opt = Math.max(0, ui.opt - 1); touch(); renderEditor(); });
   }
-  function addOption(kind, idx) {
-    const e = est(); const name = nextName(e);
-    let o;
-    if (kind === 'dup') o = cloneOption(opt(), name);
-    else if (kind === 'tpl') o = newOption(name, CONFIG.templates[idx]);
-    else o = newOption(name);
-    e.options.push(o); ui.opt = e.options.length - 1; touch(); closeModal(); renderEditor();
+  function addOption(kind, idx, replaceFirst) {
+    const e = est(); const name = replaceFirst ? e.options[0].name : nextName(e);
+    const o = kind === 'dup' ? cloneOption(opt(), name) : newOption(name, kind === 'tpl' ? CONFIG.templates[idx] : null);
+    if (replaceFirst) e.options[0] = o; else e.options.push(o);
+    ui.opt = replaceFirst ? 0 : e.options.length - 1;
+    touch(); closeModal(); renderEditor();
+  }
+
+  // ---------- Sold + celebration ----------
+  function renderSold() {
+    const e = est(), el = $('#soldcard'); if (!el) return;
+    if (e.crm) {
+      el.innerHTML = `<div class="soldrow"><div class="emoji">&#127942;</div><div><div class="t">In the CRM</div><div class="d">${e.crm.options.map(o => `${esc(o.name) || 'Option'} ${fmt(o.price)}`).join(' &middot; ')}<br>${dateStr(e.crm.at)}</div></div></div>
+        <button class="tbtn" onclick="unsell()">Undo</button>`;
+    } else {
+      el.innerHTML = `<button class="btn primary block" onclick="markSold()">Ready for CRM &#127942;</button>
+        <div class="hint">Tap when the numbers are final. Then enter the options in the CRM and present from there.</div>`;
+    }
+  }
+  function markSold() {
+    const e = est();
+    const options = e.options.map((o, i) => ({ name: o.name || 'Option ' + (i + 1), price: calc(e, o).price }));
+    e.crm = { at: Date.now(), options }; touch();
+    renderSold(); celebrate(options);
+  }
+  function unsell() { ask('Take this estimate off the CRM list?', 'Remove', () => { est().crm = null; touch(); renderSold(); }); }
+
+  let fxTimer = null, fxRaf = null;
+  function celebrate(options) {
+    const fx = $('#fx'), pop = $('#pop');
+    pop.innerHTML = `<div class="emoji">&#127942;</div><div class="big">As good as sold.</div>${options.map(o => `<div class="amt">${esc(o.name)} &middot; ${fmt(o.price)}</div>`).join('')}<div class="go">Now go enter ${options.length > 1 ? 'them' : 'it'} in the CRM.</div>`;
+    fx.classList.remove('hidden', 'out');
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduce) confetti($('#fxc'));
+    clearTimeout(fxTimer); fxTimer = setTimeout(endCelebration, reduce ? 1800 : 3400);
+  }
+  function endCelebration() {
+    const fx = $('#fx'); if (fx.classList.contains('hidden')) return;
+    clearTimeout(fxTimer); fx.classList.add('out');
+    setTimeout(() => { fx.classList.add('hidden'); fx.classList.remove('out'); if (fxRaf) cancelAnimationFrame(fxRaf); const c = $('#fxc'); const ctx = c.getContext && c.getContext('2d'); if (ctx) ctx.clearRect(0, 0, c.width, c.height); }, 360);
+  }
+  function confetti(canvas) {
+    const ctx = canvas.getContext && canvas.getContext('2d'); if (!ctx) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), W = window.innerWidth, H = window.innerHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const colors = ['#0083C3', '#7FB3D5', '#243B55', '#ED263A', '#F5B82E', '#FFFFFF'];
+    const pieces = [];
+    for (let i = 0; i < 170; i++) pieces.push({
+      x: Math.random() * W, y: -20 - Math.random() * H * 0.6, w: 6 + Math.random() * 6, h: 4 + Math.random() * 6,
+      vy: 120 + Math.random() * 160, sway: 20 + Math.random() * 40, freq: 1 + Math.random() * 2, phase: Math.random() * Math.PI * 2,
+      rot: Math.random() * Math.PI, spin: (Math.random() - .5) * 8, color: colors[i % colors.length], delay: Math.random() * 0.9
+    });
+    let start = null;
+    function frame(ts) {
+      if (!start) start = ts;
+      const t = (ts - start) / 1000;
+      ctx.clearRect(0, 0, W, H);
+      let alive = 0;
+      for (const p of pieces) {
+        const age = t - p.delay; if (age < 0) { alive++; continue; }
+        const y = p.y + p.vy * age + 60 * age * age;
+        if (y > H + 20) continue;
+        alive++;
+        const x = p.x + Math.sin(age * p.freq + p.phase) * p.sway;
+        const a = p.rot + p.spin * age;
+        ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(1, Math.max(.15, Math.abs(Math.cos(age * 3 + p.phase))));
+        ctx.fillStyle = p.color; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+      }
+      if (alive > 0 && t < 5) fxRaf = requestAnimationFrame(frame); else ctx.clearRect(0, 0, W, H);
+    }
+    if (fxRaf) cancelAnimationFrame(fxRaf);
+    fxRaf = requestAnimationFrame(frame);
   }
 
   // ---------- Sheets ----------
   function sheet(html) { $('#modal').innerHTML = `<div class="sheet">${html}<button class="btn cancel" onclick="closeModal()">Cancel</button></div>`; $('#modal').classList.remove('hidden'); }
   function closeModal() { $('#modal').classList.add('hidden'); }
-  function openAddOption() {
-    sheet(`<h3>Add an option</h3>
-      <button class="btn" onclick="addOption('dup')">Duplicate "${esc(opt().name) || 'current option'}"</button>
-      ${CONFIG.templates.map((t, i) => `<button class="btn" onclick="addOption('tpl',${i})">${esc(t.name)}</button>`).join('')}
-      <button class="btn" onclick="addOption('blank')">Blank option</button>`);
+  let pending = null;
+  function ask(title, yesLabel, fn) { pending = fn; sheet(`<h3>${esc(title)}</h3><button class="btn danger" onclick="confirmAsk()">${esc(yesLabel)}</button>`); }
+  function confirmAsk() { const fn = pending; pending = null; closeModal(); if (fn) fn(); }
+  function openAddOption(first) {
+    sheet(`<h3>${first ? 'Start with' : 'Add an option'}</h3>
+      ${first ? '' : `<button class="btn" onclick="addOption('dup')">Duplicate "${esc(opt().name) || 'current option'}"</button>`}
+      ${CONFIG.templates.map((t, i) => `<button class="btn" onclick="addOption('tpl',${i},${!!first})">${esc(t.name)}</button>`).join('')}
+      <button class="btn" onclick="addOption('blank',0,${!!first})">Blank option</button>`);
   }
-  function openMenu() {
-    sheet(`<h3>${esc(est().label) || 'This estimate'}</h3>
-      <button class="btn" onclick="copySummary()">Copy summary</button>
-      ${navigator.share ? `<button class="btn" onclick="shareSummary()">Share summary&hellip;</button>` : ''}
-      <button class="btn danger" onclick="closeModal(); delEst()">Delete estimate</button>`);
-  }
-
-  // ---------- Present + summary text ----------
-  function renderPresent() {
-    const e = est(); if (!e) return goList();
-    $('#bar').innerHTML = `<button class="ibtn" onclick="goEdit()">&#8249; Back</button><h1>${esc(e.label) || 'Your options'}</h1><button class="ibtn sky" onclick="copySummary()">Copy</button>`;
-    $('#view').innerHTML = `<div class="pgrid">${e.options.map((o, i) => {
-      const r = calc(o); const fin = bestPlan(r.total);
-      const inc = (o.includes || '').split('\n').map(s => s.trim()).filter(Boolean);
-      return `<div class="pcard ${o.rec ? 'rec' : ''}">
-        <h3>${esc(o.name) || 'Option ' + (i + 1)} ${o.rec ? '<span class="tag">RECOMMENDED</span>' : ''}</h3>
-        <div class="price">${fmt(r.total)}</div>
-        ${fin ? `<div class="mo">from ${fmt(fin.monthly)}/mo &middot; ${esc(fin.plan.label)}</div>` : ''}
-        ${inc.length ? `<ul>${inc.map(s => `<li>${esc(s)}</li>`).join('')}</ul>` : ''}
-        ${r.discount ? `<div class="note">Includes ${fmt(r.discount)} discount</div>` : ''}
-        ${r.rebate ? `<div class="note">Rebates available: ${fmt(r.rebate)} back after installation</div>` : ''}
-      </div>`; }).join('')}</div>
-      ${CONFIG.presentFootnote ? `<p class="fine">${esc(CONFIG.presentFootnote)}</p>` : ''}`;
-  }
-  function summaryText() {
-    const e = est(); const out = [];
-    out.push((e.label || 'Estimate') + ' - ' + dateStr(Date.now()));
-    for (const o of e.options) {
-      const r = calc(o); const fin = bestPlan(r.total);
-      out.push('', (o.name || 'Option').toUpperCase() + (o.rec ? ' (recommended)' : '') + ' - ' + fmt(r.total) + (fin ? ' (from ' + fmt(fin.monthly) + '/mo, ' + fin.plan.label + ')' : ''));
-      const inc = (o.includes || '').split('\n').map(s => s.trim()).filter(Boolean);
-      inc.forEach(s => out.push('  - ' + s));
-      for (const c of CATS) for (const it of o.items[c.key]) if (it.desc) out.push('  ' + it.desc + (num(it.qty) > 1 ? ' x' + it.qty : ''));
-      for (const it of o.items.labor) if (it.desc) out.push('  ' + it.desc + ' (' + laborHours(it) + ' hrs)');
-      if (r.discount) out.push('  Discount: -' + fmt(r.discount));
-      if (r.rebate) out.push('  Rebates: ' + fmt(r.rebate) + ' back after installation');
-    }
-    if (CONFIG.presentFootnote) out.push('', CONFIG.presentFootnote);
-    return out.join('\n');
-  }
-  async function copySummary() {
-    closeModal();
-    try { await navigator.clipboard.writeText(summaryText()); alert('Summary copied.'); }
-    catch (e) { prompt('Copy this summary:', summaryText()); }
-  }
-  async function shareSummary() { closeModal(); try { await navigator.share({ title: est().label || 'Estimate', text: summaryText() }); } catch (e) {} }
 
   render();
 </script>
