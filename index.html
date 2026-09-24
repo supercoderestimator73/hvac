@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>HVAC Estimator</title>
-<meta name="theme-color" content="#243B55">
+<meta name="theme-color" content="#243B55" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1A28" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="HVAC Estimator">
@@ -15,9 +16,15 @@
 <style>
   :root {
     --navy: #243B55; --blue: #0083C3; --blue-deep: #0072AB; --sky: #7FB3D5; --red: #ED263A;
-    --mist: #F2F4F7; --ink: #1B2A3D; --muted: #5B6B82; --faint: #98A3B3; --line: #D5DBE3; --hair: #E6EAF0; --field: #EEF1F5;
-    --ok: #1E8E5A; --amber: #B7791F;
-    color-scheme: light;
+    --mist: #F2F4F7; --card: #FFFFFF; --ink: #1B2A3D; --head: #243B55; --muted: #5B6B82; --faint: #98A3B3; --line: #D5DBE3; --hair: #E6EAF0; --field: #EEF1F5;
+    --ok: #1E8E5A; --amber: #B7791F; --shadow: rgba(27,42,61,.05);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --mist: #0F1A28; --card: #1A2739; --ink: #E6ECF3; --head: #F2F6FA; --muted: #A3B4C8; --faint: #6F8399; --line: #34465E; --hair: #2A3A50; --field: #243349;
+      --ok: #4CC38A; --amber: #E0B15A; --shadow: rgba(0,0,0,.35);
+    }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -37,8 +44,8 @@
 
   .wrap { max-width: 1040px; margin: 0 auto; padding: 14px 16px calc(24px + env(safe-area-inset-bottom)); }
   .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .card { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(27,42,61,.05); }
-  .card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; color: var(--navy); display: flex; justify-content: space-between; align-items: baseline; }
+  .card { background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 14px; box-shadow: 0 1px 2px var(--shadow); }
+  .card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; color: var(--head); display: flex; justify-content: space-between; align-items: baseline; }
   .sub { font-size: 12px; font-weight: 500; color: var(--faint); }
 
   /* Fields */
@@ -46,14 +53,14 @@
   input { width: 100%; min-width: 0; height: 46px; padding: 0 12px; border: 1px solid transparent; border-radius: 10px; background: var(--field);
     transition: background .12s, box-shadow .12s, border-color .12s; -webkit-appearance: none; appearance: none; }
   input::placeholder { color: var(--faint); }
-  input:focus { outline: none; background: #fff; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,131,195,.18); }
+  input:focus { outline: none; background: var(--card); border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,131,195,.18); }
   input:disabled { color: var(--muted); -webkit-text-fill-color: var(--muted); opacity: 1; }
   .lbl { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
   .mt { margin-top: 12px; }
   .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   .inline { display: flex; gap: 10px; }
   .hint { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
-  .hint b { color: var(--navy); font-weight: 600; }
+  .hint b { color: var(--head); font-weight: 600; }
   .cap { font-size: 12.5px; color: var(--muted); margin-top: 6px; text-align: center; }
 
   /* Segmented controls */
@@ -61,11 +68,11 @@
   .seg::-webkit-scrollbar { display: none; }
   .seg button { flex: 1 1 0; min-width: 0; height: 38px; padding: 0 8px; border: 0; border-radius: 10px; background: transparent; color: var(--muted);
     font-size: 14.5px; font-weight: 600; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background .12s, color .12s; }
-  .seg button.on { background: #fff; color: var(--navy); box-shadow: 0 1px 3px rgba(27,42,61,.18); }
+  .seg button.on { background: var(--card); color: var(--head); box-shadow: 0 1px 3px rgba(27,42,61,.18); }
   .seg button:active { opacity: .7; }
   .segrow { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
   .segrow .seg { flex: 1; min-width: 0; }
-  .round { flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 22px; background: #fff; color: var(--blue); font-size: 26px; line-height: 1; cursor: pointer; box-shadow: 0 1px 2px rgba(27,42,61,.08); }
+  .round { flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--card); color: var(--blue); font-size: 26px; line-height: 1; cursor: pointer; box-shadow: 0 1px 2px var(--shadow); }
   .round:active { opacity: .6; }
 
   /* Rows */
@@ -83,7 +90,7 @@
 
   /* Buttons */
   .btnrow { display: flex; gap: 10px; margin-top: 12px; }
-  .btn { height: 46px; padding: 0 16px; border-radius: 12px; border: 0; background: var(--field); color: var(--navy); font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn { height: 46px; padding: 0 16px; border-radius: 12px; border: 0; background: var(--field); color: var(--head); font-weight: 600; cursor: pointer; white-space: nowrap; }
   .btn:active { opacity: .7; }
   .btn.primary { background: var(--blue); color: #fff; }
   .btn.danger { color: var(--red); }
@@ -99,7 +106,7 @@
   .sum .k:first-child, .sum .k:first-child + .v { border-top: 0; padding-top: 2px; }
   .sum .k { color: var(--muted); }
   .sum .v { text-align: right; font-weight: 600; }
-  .sum .big { font-size: 20px; color: var(--navy); font-weight: 700; }
+  .sum .big { font-size: 20px; color: var(--head); font-weight: 700; }
   .good { color: var(--ok); } .warn { color: var(--amber); } .bad { color: var(--red); }
 
   /* Sticky price */
@@ -112,20 +119,41 @@
   .sticky .good { color: #7EE2A8; } .sticky .warn { color: #F2C66D; } .sticky .bad { color: #FF8A94; }
 
   /* List */
-  .est { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: #fff; border: 0; border-radius: 14px; padding: 14px 12px 14px 16px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 1px 2px rgba(27,42,61,.05); }
+  .est { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: var(--card); border: 0; border-radius: 14px; padding: 14px 12px 14px 16px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 1px 2px var(--shadow); }
   .est:active { background: var(--field); }
   .est .body { flex: 1; min-width: 0; }
-  .est .t { font-weight: 600; font-size: 17px; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .est .t { font-weight: 600; font-size: 17px; color: var(--head); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .est .d { font-size: 13px; color: var(--muted); margin-top: 2px; }
   .est .o { margin-top: 6px; font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
   .est .chev { color: var(--faint); font-size: 22px; flex: 0 0 auto; }
   .empty { text-align: center; color: var(--muted); padding: 64px 12px 24px; line-height: 1.5; }
-  .empty .big { font-size: 20px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .empty .big { font-size: 20px; font-weight: 600; color: var(--head); margin-bottom: 4px; }
   .note { font-size: 12.5px; color: var(--faint); text-align: center; margin: 14px 0 18px; line-height: 1.4; }
   #view.list { display: flex; flex-direction: column; min-height: calc(100vh - 56px - env(safe-area-inset-top)); min-height: calc(100dvh - 56px - env(safe-area-inset-top)); }
   #view.list .fab { margin-top: auto; }
   .fab { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); width: 100%; height: 50px; border: 0; border-radius: 14px; background: var(--blue); color: #fff; font-size: 17px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 28px rgba(0,131,195,.35); }
   .fab:active { background: var(--blue-deep); }
+
+  /* Steppers */
+  .stepper { display: flex; align-items: center; background: var(--field); border-radius: 10px; border: 1px solid transparent; transition: box-shadow .12s, border-color .12s; }
+  .stepper:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,131,195,.18); }
+  .stepper button { flex: 0 0 36px; width: 36px; height: 44px; border: 0; background: transparent; color: var(--blue); font-size: 22px; line-height: 1; cursor: pointer; }
+  .stepper button:active { opacity: .5; }
+  .stepper input { flex: 1; background: transparent; border: 0; text-align: center; padding: 0 2px; height: 44px; }
+  .stepper input:focus { background: transparent; box-shadow: none; border: 0; }
+
+  /* Weekly strip */
+  .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: var(--card); border-radius: 14px; padding: 12px 8px; margin-bottom: 14px; box-shadow: 0 1px 2px var(--shadow); }
+  .stats .h { grid-column: 1 / -1; font-size: 12.5px; font-weight: 600; color: var(--muted); text-align: center; margin-bottom: 2px; }
+  .stats .n { font-size: 24px; font-weight: 700; color: var(--head); text-align: center; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .stats .k { font-size: 12px; color: var(--muted); text-align: center; margin-top: 3px; }
+
+  .tag { display: inline-block; font-size: 11.5px; font-weight: 700; border-radius: 999px; padding: 2px 8px; margin-left: 6px; vertical-align: middle; }
+  .tag.warn { color: #fff; background: var(--amber); }
+  .checks { margin-top: 10px; }
+  .checks div { font-size: 13px; color: var(--amber); font-weight: 600; margin-top: 4px; }
+  .foot { display: flex; justify-content: center; gap: 14px; margin-bottom: 18px; }
+  .foot .tbtn { margin: 0; height: 36px; font-size: 14px; }
 
   /* Sold */
   .soldrow { display: flex; align-items: center; gap: 12px; }
@@ -137,10 +165,10 @@
   .fx { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; }
   .fx.hidden { display: none; }
   .fx canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-  .fx .pop { position: relative; background: #fff; border-radius: 24px; padding: 22px 30px 20px; text-align: center; min-width: 220px; max-width: 320px;
+  .fx .pop { position: relative; background: var(--card); border-radius: 24px; padding: 22px 30px 20px; text-align: center; min-width: 220px; max-width: 320px;
     box-shadow: 0 24px 60px rgba(27,42,61,.35); animation: pop .55s cubic-bezier(.2,1.5,.45,1) both; }
   .fx .pop .emoji { font-size: 92px; line-height: 1.05; }
-  .fx .pop .big { font-size: 28px; font-weight: 800; color: var(--navy); margin-top: 6px; letter-spacing: -.01em; }
+  .fx .pop .big { font-size: 28px; font-weight: 800; color: var(--head); margin-top: 6px; letter-spacing: -.01em; }
   .fx .pop .amt { font-size: 16px; font-weight: 600; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
   .fx .pop .go { font-size: 14px; font-weight: 600; color: var(--blue); margin-top: 10px; }
   .fx .pop .big { font-size: 26px; }
@@ -154,15 +182,15 @@
   .modal.hidden { display: none; }
   .sheet { background: var(--mist); width: 100%; max-width: 560px; border-radius: 18px 18px 0 0; padding: 14px 8px calc(10px + env(safe-area-inset-bottom)); }
   .sheet h3 { margin: 4px 0 12px; font-size: 14px; font-weight: 600; color: var(--muted); text-align: center; }
-  .sheet .btn { width: 100%; height: 52px; margin-bottom: 8px; background: #fff; color: var(--blue); font-size: 17px; font-weight: 500; text-align: center; }
+  .sheet .btn { width: 100%; height: 52px; margin-bottom: 8px; background: var(--card); color: var(--blue); font-size: 17px; font-weight: 500; text-align: center; }
   .sheet .btn.danger { color: var(--red); }
-  .sheet .cancel { color: var(--navy); font-weight: 600; margin-top: 4px; }
+  .sheet .cancel { color: var(--head); font-weight: 600; margin-top: 4px; }
 
   /* Wider screens: single-line rows, header row, and a two-column editor */
   @media (min-width: 640px) {
     .head { display: grid; }
-    .head.cat, .row.cat { grid-template-columns: minmax(0,1fr) 130px 90px 36px; grid-template-areas: none; align-items: center; }
-    .head.lab, .row.lab { grid-template-columns: minmax(0,1fr) 110px 110px 36px; grid-template-areas: none; align-items: center; }
+    .head.cat, .row.cat { grid-template-columns: minmax(0,1fr) 130px 136px 36px; grid-template-areas: none; align-items: center; }
+    .head.lab, .row.lab { grid-template-columns: minmax(0,1fr) 110px 136px 36px; grid-template-areas: none; align-items: center; }
     .f.desc, .f.cost, .f.qty, .f.hrs, .f.ppl, .remove { grid-area: auto; }
     .f .lbl { display: none; }
     .remove { align-self: center; }
@@ -200,6 +228,8 @@
       { key: 'idle',   label: 'Idle crew', days: 'Open days this week', floor: 0.35, manager: true }
     ],
     hardFloor: 0.35,         // no discount may take gross margin below this, whatever the tier says
+    ratesUpdated: 'Sep 24, 2026',   // shown at the bottom of the list; change it whenever you change rates
+    guard: { cost: 25000, qty: 10, hours: 80, people: 6 },   // above these, the app shows a "check this" warning
     roundTo: 5,            // book price rounds up to the nearest $5; a discounted price rounds to the nearest $5
     maxRoundTo: 10,        // the max discount shown for a tier rounds to the nearest $10
     // Quick-add lists. Leave empty to hide the picker. Items: { name, cost } — labor: { name, hours, people }
@@ -332,11 +362,25 @@
   function delEstimate() { ask('Delete this estimate?', 'Delete estimate', () => { db.estimates = db.estimates.filter(x => x.id !== ui.estId); save(); goList(); }); }
 
   // ---------- List ----------
+  function weekStats() {
+    const now = new Date(), day = (now.getDay() + 6) % 7;
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day).getTime();
+    const created = db.estimates.filter(e => e.created >= monday).length;
+    const sent = db.estimates.filter(e => e.crm && e.crm.at >= monday);
+    const prices = sent.flatMap(e => e.crm.options.map(o => o.price)).filter(p => p > 0);
+    const avg = prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+    return { created, toCrm: sent.length, avg };
+  }
   function renderList() {
     $('#view').classList.add('list');
     $('#bar').innerHTML = `<span class="l"></span><h1>HVAC Estimator</h1><span class="r"></span>`;
     const list = [...db.estimates].sort((a, b) => b.updated - a.updated);
-    $('#view').innerHTML = (list.length ? list.map(e => `
+    const st = weekStats();
+    $('#view').innerHTML = `<div class="stats"><div class="h">This week</div>
+        <div><div class="n">${st.created}</div><div class="k">Created</div></div>
+        <div><div class="n">${st.toCrm}</div><div class="k">To CRM</div></div>
+        <div><div class="n">${st.avg ? fmt(st.avg) : '&ndash;'}</div><div class="k">Avg price</div></div></div>`
+      + (list.length ? list.map(e => `
       <button class="est" onclick="openEst('${e.id}')">
         <div class="body">
           <div class="t">${e.crm ? '&#127942; ' : ''}${esc(e.label) || 'Untitled estimate'}${e.crm ? '<span class="sold">In CRM</span>' : ''}</div>
@@ -345,8 +389,13 @@
         </div>
         <span class="chev">&#8250;</span>
       </button>`).join('') : `<div class="empty"><div class="big">No estimates yet</div>Start one and pick a template.</div>`)
-      + `<div class="note">Estimates are stored on this device only.</div>`
+      + `<div class="note">Rates updated ${esc(CONFIG.ratesUpdated)} &middot; Estimates are stored on this device only.</div>
+         <div class="foot"><button class="tbtn" onclick="checkUpdates()">Check for updates</button></div>`
       + `<button class="fab" onclick="newEstimate()">New estimate</button>`;
+  }
+  async function checkUpdates() {
+    try { const r = navigator.serviceWorker && await navigator.serviceWorker.getRegistration(); if (r) await r.update(); } catch (e) {}
+    location.reload();
   }
 
   // ---------- Editor ----------
@@ -368,6 +417,7 @@
           <label class="lbl mt">Install schedule</label>
           <div class="seg" id="sched">${CONFIG.schedule.map(t => `<button type="button" data-key="${t.key}" class="${t.key === e.schedule ? 'on' : ''}" onclick="setSched('${t.key}')">${esc(t.label)}</button>`).join('')}</div>
           <div class="cap" id="schedcap">${esc(tierOf(e).days)}</div>
+          <button class="tbtn" onclick="dupEstimate()">Duplicate estimate</button>
         </div>
         <div class="segrow">
           <div class="seg" id="chips">${e.options.map((op, i) => `<button type="button" class="chip ${i === ui.opt ? 'on' : ''}" onclick="switchOpt(${i})">${esc(op.name) || 'Option ' + (i + 1)}</button>`).join('')}</div>
@@ -431,7 +481,7 @@
     return `<div class="row cat" data-id="${it.id}">
       <div class="f desc"><span class="lbl">Description</span><input value="${esc(it.desc)}" placeholder="Description" autocomplete="off" oninput="setItem('${cat}','${it.id}','desc',this.value)"></div>
       <div class="f cost"><span class="lbl">Cost</span><input inputmode="decimal" value="${it.cost || ''}" placeholder="0.00" autocomplete="off" oninput="setItem('${cat}','${it.id}','cost',this.value)"></div>
-      <div class="f qty"><span class="lbl">Qty</span><input inputmode="decimal" value="${it.qty ?? 1}" autocomplete="off" oninput="setItem('${cat}','${it.id}','qty',this.value)"></div>
+      <div class="f qty"><span class="lbl">Qty</span><div class="stepper"><button type="button" onclick="step('${cat}','${it.id}','qty',-1)" aria-label="Less">&minus;</button><input inputmode="decimal" value="${it.qty ?? 1}" autocomplete="off" oninput="setItem('${cat}','${it.id}','qty',this.value)"><button type="button" onclick="step('${cat}','${it.id}','qty',1)" aria-label="More">+</button></div></div>
       <button class="remove" onclick="removeItem('${cat}','${it.id}')" aria-label="Remove"><span>&times;</span></button>
     </div>`;
   }
@@ -449,7 +499,7 @@
     return `<div class="row lab" data-id="${it.id}">
       <div class="f desc"><span class="lbl">Description</span><input value="${esc(it.desc)}" placeholder="Install crew" autocomplete="off" oninput="setItem('labor','${it.id}','desc',this.value)"></div>
       <div class="f hrs"><span class="lbl">Hours each</span><input inputmode="decimal" value="${it.hours || ''}" placeholder="0" autocomplete="off" oninput="setItem('labor','${it.id}','hours',this.value)"></div>
-      <div class="f ppl"><span class="lbl">People</span><input inputmode="numeric" value="${it.people ?? 1}" autocomplete="off" oninput="setItem('labor','${it.id}','people',this.value)"></div>
+      <div class="f ppl"><span class="lbl">People</span><div class="stepper"><button type="button" onclick="step('labor','${it.id}','people',-1)" aria-label="Less">&minus;</button><input inputmode="numeric" value="${it.people ?? 1}" autocomplete="off" oninput="setItem('labor','${it.id}','people',this.value)"><button type="button" onclick="step('labor','${it.id}','people',1)" aria-label="More">+</button></div></div>
       <button class="remove" onclick="removeItem('labor','${it.id}')" aria-label="Remove"><span>&times;</span></button>
     </div>`;
   }
@@ -477,6 +527,16 @@
       <div class="k">Gross profit</div><div class="v">${fmt(r.gp)}</div>
       <div class="k big">Gross margin</div><div class="v big ${r.status}">${r.empty ? '&ndash;' : gmText(r)}</div>
     </div>`;
+    const g = CONFIG.guard, checks = [];
+    for (const c of CATS) for (const it of o.items[c.key]) {
+      if (num(it.cost) > g.cost) checks.push(`${esc(it.desc) || c.label} cost ${fmt(num(it.cost))} looks high.`);
+      if (num(it.qty) > g.qty) checks.push(`${esc(it.desc) || c.label} quantity ${it.qty} looks high.`);
+    }
+    for (const it of o.items.labor) {
+      if (num(it.hours) > g.hours) checks.push(`${esc(it.desc) || 'Labor'}: ${it.hours} hours each looks high.`);
+      if (num(it.people) > g.people) checks.push(`${esc(it.desc) || 'Labor'}: ${it.people} people looks high.`);
+    }
+    if (checks.length) $('#margin').insertAdjacentHTML('beforeend', `<div class="checks">${checks.map(c => `<div>&#9888; ${c}</div>`).join('')}</div>`);
     $('#sticky').innerHTML = `<div><div class="l">${name}</div><div class="m">Cost <b>${fmt(r.cost)}</b> &middot; GM <b class="${r.status}">${r.empty ? '&ndash;' : gmText(r)}</b></div></div><div class="a">${fmt(r.price)}</div>`;
   }
   function useMax() { const r = calc(est(), opt()); opt().discount = r.maxDisc; touch(); const i = $('#disc'); if (i) i.value = r.maxDisc || ''; updateTotal(); }
@@ -503,6 +563,18 @@
     const row = document.querySelector(`.row[data-id="${it.id}"]`);
     if (row) { row.scrollIntoView({ block: 'center' }); if (!preset) row.querySelector('input').focus(); }
   }
+  function step(cat, id, k, d) {
+    const it = opt().items[cat].find(x => x.id === id); if (!it) return;
+    it[k] = Math.max(0, Math.round(((num(it[k]) || 0) + d) * 100) / 100); touch();
+    const inp = document.querySelector(`.row[data-id="${id}"] .f.${k === 'people' ? 'ppl' : 'qty'} input`); if (inp) inp.value = it[k];
+    updateTotal();
+  }
+  function dupEstimate() {
+    const e = est(), c = JSON.parse(JSON.stringify(e));
+    c.id = uid(); c.label = e.label ? e.label + ' (copy)' : ''; c.created = c.updated = Date.now(); c.crm = null;
+    c.options.forEach(o => { o.id = uid(); for (const k in o.items) o.items[k].forEach(i => i.id = uid()); });
+    db.estimates.unshift(c); save(); openEst(c.id);
+  }
   function quickAdd(cat, sel) { const q = (CONFIG.catalog[cat] || [])[sel.value]; sel.value = ''; if (q) addItem(cat, q); }
   function removeItem(cat, id) { const items = opt().items[cat]; const i = items.findIndex(x => x.id === id); if (i > -1) items.splice(i, 1); touch(); renderEditor(); }
   function dupOption() { const e = est(); e.options.splice(ui.opt + 1, 0, cloneOption(opt(), nextName(e))); ui.opt++; touch(); renderEditor(); }
@@ -524,10 +596,11 @@
     const e = est(), el = $('#soldcard'); if (!el) return;
     if (e.crm) {
       el.innerHTML = `<div class="soldrow"><div class="emoji">&#127942;</div><div><div class="t">In the CRM</div><div class="d">${e.crm.options.map(o => `${esc(o.name) || 'Option'} ${fmt(o.price)}`).join(' &middot; ')}<br>${dateStr(e.crm.at)}</div></div></div>
-        <button class="tbtn" onclick="unsell()">Undo</button>`;
+        <div class="btnrow"><button class="btn" onclick="sharePdf()">Share PDF</button><button class="btn danger" onclick="unsell()">Undo</button></div>`;
     } else {
       el.innerHTML = `<button class="btn primary block" onclick="markSold()">Ready for CRM &#127942;</button>
-        <div class="hint">Tap when the numbers are final. Then enter the options in the CRM and present from there.</div>`;
+        <div class="hint">Tap when the numbers are final. Then enter the options in the CRM and present from there.</div>
+        <button class="tbtn" onclick="sharePdf()">Share PDF for CRM entry</button>`;
     }
   }
   function markSold() {
@@ -541,7 +614,10 @@
   let fxTimer = null, fxRaf = null;
   function celebrate(options) {
     const fx = $('#fx'), pop = $('#pop');
-    pop.innerHTML = `<div class="emoji">&#127942;</div><div class="big">As good as sold.</div>${options.map(o => `<div class="amt">${esc(o.name)} &middot; ${fmt(o.price)}</div>`).join('')}<div class="go">Now go enter ${options.length > 1 ? 'them' : 'it'} in the CRM.</div>`;
+    const lines = ['As good as sold.', 'Go get it.', 'Nice work. Now close it.', 'Strong ladder. Go present it.'];
+    if (options.length === 3) lines.push('Three options. One yes.');
+    const line = Math.random() < 0.5 ? lines[0] : lines[Math.floor(Math.random() * lines.length)];
+    pop.innerHTML = `<div class="emoji">&#127942;</div><div class="big">${line}</div>${options.map(o => `<div class="amt">${esc(o.name)} &middot; ${fmt(o.price)}</div>`).join('')}<div class="go">Now go enter ${options.length > 1 ? 'them' : 'it'} in the CRM.</div>`;
     fx.classList.remove('hidden', 'out');
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!reduce) confetti($('#fxc'));
@@ -585,6 +661,76 @@
     fxRaf = requestAnimationFrame(frame);
   }
 
+  // ---------- PDF for CRM entry (line-item prices, no costs) ----------
+  function pdfText(t) { return String(t ?? '').replace(/[\u2013\u2014\u2212]/g, '-').replace(/\u00b7/g, '-').replace(/[^\x20-\x7E]/g, '?').replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)'); }
+  const money = n => '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function buildPdf(e) {
+    const W = 612, H = 792, M = 50, LH = 15;
+    const pages = []; let ops = [], y = H - M;
+    const newPage = () => { if (ops.length) pages.push(ops); ops = []; y = H - M; };
+    const need = n => { if (y - n < M) newPage(); };
+    const T = (x, yy, t, f = 'F1', sz = 10) => ops.push(`BT /${f} ${sz} Tf ${x.toFixed(1)} ${yy.toFixed(1)} Td (${pdfText(t)}) Tj ET`);
+    const R = (xr, yy, t, f = 'F2', sz = 10) => T(xr - String(t).length * 0.6 * sz, yy, t, f, sz);   // Courier: 0.6em per char
+    const rule = yy => ops.push(`0.8 0.85 0.9 RG 0.5 w ${M} ${yy.toFixed(1)} m ${W - M} ${yy.toFixed(1)} l S`);
+    T(M, y, e.label || 'Estimate', 'F3', 15); R(W - M, y + 2, dateStr(Date.now()), 'F1', 10);
+    y -= LH; T(M, y, 'Line-item prices for CRM entry', 'F1', 10); y -= LH * 1.4;
+    e.options.forEach((o, i) => {
+      const r = calc(e, o);
+      need(LH * 6);
+      T(M, y, `${o.name || 'Option ' + (i + 1)}`, 'F3', 12); R(W - M, y + 1, fmt(r.price), 'F3', 12); y -= LH * 1.2;
+      T(M, y, 'Item', 'F2', 8.5); R(400, y, 'Qty', 'F2', 8.5); R(470, y, 'Unit', 'F2', 8.5); R(W - M, y, 'Total', 'F2', 8.5); y -= 4; rule(y); y -= LH * 0.8;
+      let sum = 0;
+      const row = (desc, qty, unit, total) => { need(LH); T(M, y, String(desc).slice(0, 48), 'F2', 10); R(400, y, qty, 'F2', 10); R(470, y, unit, 'F2', 10); R(W - M, y, total, 'F2', 10); y -= LH; };
+      for (const c of CATS) {
+        const items = o.items[c.key].filter(it => (num(it.cost) || 0) > 0 && (num(it.qty) || 0) > 0);   // lines with no cost aren't part of the price
+        if (!items.length) continue;
+        need(LH * 2); T(M, y, c.label, 'F3', 10); y -= LH;
+        for (const it of items) { const q = num(it.qty) || 0, unit = (num(it.cost) || 0) * (1 + CONFIG.markups[c.key]), tot = unit * q; sum += tot; row(it.desc || c.label, q, money(unit), money(tot)); }
+      }
+      const labor = o.items.labor.filter(it => (num(it.hours) || 0) * (num(it.people) || 0) > 0);
+      if (labor.length) {
+        need(LH * 2); T(M, y, 'Labor', 'F3', 10); y -= LH;
+        for (const it of labor) { const h = (num(it.hours) || 0) * (num(it.people) || 0), tot = h * CONFIG.laborRate; sum += tot; row(`${it.desc || 'Install crew'} (installer hours)`, h, money(CONFIG.laborRate), money(tot)); }
+      }
+      const permit = num(e.permit) || 0;
+      if (permit) { row('Permit', 1, money(permit), money(permit)); sum += permit; }
+      const rounding = r.list - sum;
+      if (Math.abs(rounding) >= 0.005) row('Rounding to book price', '', '', money(rounding));
+      need(LH * 3); rule(y + LH * 0.7);
+      T(M, y, 'Book price', 'F3', 10); R(W - M, y, money(r.list), 'F2', 10); y -= LH;
+      if (r.disc > 0) { T(M, y, 'Discount', 'F3', 10); R(W - M, y, '-' + money(r.disc), 'F2', 10); y -= LH; }
+      T(M, y, 'Price', 'F3', 11); R(W - M, y, money(r.price), 'F3', 11); y -= LH * 1.8;
+    });
+    newPage();
+    const objs = [];
+    const add = body => { objs.push(body); return objs.length; };
+    const fontIds = { F1: add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'), F3: add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'), F2: add('<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>') };
+    const pagesId = objs.length + 1; objs.push(null);
+    const pageIds = pages.map(p => {
+      const stream = p.join('\n'); const cid = add(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+      return add(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 ${fontIds.F1} 0 R /F2 ${fontIds.F2} 0 R /F3 ${fontIds.F3} 0 R >> >> /Contents ${cid} 0 R >>`);
+    });
+    objs[pagesId - 1] = `<< /Type /Pages /Kids [${pageIds.map(i => i + ' 0 R').join(' ')}] /Count ${pageIds.length} >>`;
+    const catId = add(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
+    let out = '%PDF-1.4\n'; const offsets = [];
+    objs.forEach((b, i) => { offsets.push(out.length); out += `${i + 1} 0 obj\n${b}\nendobj\n`; });
+    const xref = out.length;
+    out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offsets.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+    out += `trailer\n<< /Size ${objs.length + 1} /Root ${catId} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    return new Blob([out], { type: 'application/pdf' });
+  }
+  async function sharePdf() {
+    const e = est(), blob = buildPdf(e);
+    const name = ((e.label || 'Estimate').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-') || 'Estimate') + '.pdf';
+    try {
+      const file = new File([blob], name, { type: 'application/pdf' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; }
+    } catch (err) { if (err && err.name === 'AbortError') return; }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name; a.target = '_blank'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+
   // ---------- Sheets ----------
   function sheet(html) { $('#modal').innerHTML = `<div class="sheet">${html}<button class="btn cancel" onclick="closeModal()">Cancel</button></div>`; $('#modal').classList.remove('hidden'); }
   function closeModal() { $('#modal').classList.add('hidden'); }
@@ -599,6 +745,7 @@
   }
 
   render();
+  if ('serviceWorker' in navigator) window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
 </script>
 
 </body>
