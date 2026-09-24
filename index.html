@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HVAC Estimator</title>
+<meta name="theme-color" content="#243B55">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="HVAC Estimator">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #243B55; --blue: #0083C3; --blue-deep: #0072AB; --sky: #7FB3D5; --red: #ED263A;
+    --mist: #F2F4F7; --white: #FFFFFF; --ink: #1B2A3D; --muted: #5B6B82; --faint: #98A3B3;
+    --line: #D5DBE3; --hair: #EDF0F4; --ok: #1E8E5A;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--mist); color: var(--ink);
+    font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent; }
+
+  .bar { background: var(--navy); color: #fff; position: sticky; top: 0; z-index: 20;
+    padding: calc(8px + env(safe-area-inset-top)) 10px 8px; }
+  .bar .inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 4px; min-height: 40px; }
+  .bar h1 { font-size: 19px; font-weight: 600; margin: 0; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 6px; }
+  .bar .spacer { flex: 1; }
+  .ibtn { height: 40px; min-width: 40px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: #fff;
+    font: inherit; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap; }
+  .ibtn:hover, .ibtn:focus-visible { background: rgba(255,255,255,.12); outline: none; }
+  .ibtn.sky { color: var(--sky); }
+  .ibtn.on { background: rgba(255,255,255,.2); }
+  .ibtn svg { width: 20px; height: 20px; }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 14px 14px calc(28px + env(safe-area-inset-bottom)); }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+  .card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; color: var(--navy); display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .sub { font-size: 12px; font-weight: 600; color: var(--faint); }
+
+  input, select, textarea, button { font: inherit; font-size: 16px; color: var(--ink); }
+  input, select, textarea { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    padding: 0 12px; height: 44px; transition: border-color .12s, box-shadow .12s; }
+  textarea { height: auto; min-height: 76px; padding: 10px 12px; resize: vertical; line-height: 1.35; }
+  input::placeholder, textarea::placeholder { color: var(--faint); }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,131,195,.18); }
+  input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--blue); margin: 0; }
+  select { appearance: none; -webkit-appearance: none; padding-right: 32px; background-repeat: no-repeat; background-position: right 12px center;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23243B55' stroke-width='1.8'/%3E%3C/svg%3E"); }
+  .lbl { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  .mt { margin-top: 10px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hint { font-size: 12.5px; color: var(--muted); margin-top: 8px; line-height: 1.35; }
+  .chk { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 15px; cursor: pointer; }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; height: 38px; padding: 0 14px; border-radius: 19px; border: 1px solid var(--line); background: #fff;
+    color: var(--navy); font-weight: 600; font-size: 15px; cursor: pointer; white-space: nowrap; }
+  .chip.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .chip.add { color: var(--blue); border-style: dashed; }
+
+  .head { display: grid; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); padding: 0 12px 6px; }
+  .head.cat, .row.cat { grid-template-columns: minmax(0,1fr) 110px 70px 96px 40px; }
+  .head.lab, .row.lab { grid-template-columns: minmax(0,1fr) 90px 90px 96px 40px; }
+  .row { display: grid; gap: 8px; align-items: center; padding: 10px 0; }
+  .row + .row { border-top: 1px solid var(--hair); }
+  .f { min-width: 0; }
+  .f .lbl { display: none; }
+  .sell { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--navy); }
+  .remove { width: 40px; height: 44px; border: 0; border-radius: 8px; background: transparent; color: var(--faint); font-size: 24px; line-height: 1; cursor: pointer; }
+  .remove:hover, .remove:focus-visible { background: rgba(237,38,58,.08); color: var(--red); outline: none; }
+  .none { color: var(--faint); font-size: 14px; padding: 4px 0 6px; }
+
+  .btnrow { display: flex; gap: 8px; margin-top: 10px; }
+  .btn { height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: #fff; color: var(--navy); font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn:hover, .btn:focus-visible { border-color: var(--blue); outline: none; }
+  .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn.primary:hover { background: var(--blue-deep); }
+  .btn.ghost { border-style: dashed; color: var(--blue); flex: 1; }
+  .btn.danger { color: var(--red); }
+  .btn.block { width: 100%; }
+  .quick { flex: 1.4; }
+
+  .sum { display: grid; grid-template-columns: 1fr auto; row-gap: 7px; column-gap: 12px; font-variant-numeric: tabular-nums; align-items: baseline; }
+  .sum .k { color: var(--muted); }
+  .sum .v { text-align: right; font-weight: 600; }
+  .sum .tot { font-size: 19px; color: var(--navy); font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
+  .sum .int { color: var(--muted); font-size: 14px; }
+  .sum .warn { color: var(--red); }
+  .sum .good { color: var(--ok); }
+
+  .sticky { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); background: var(--navy); color: #fff; border-radius: 12px;
+    padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 28px rgba(36,59,85,.28); }
+  .sticky .l { font-size: 14px; color: var(--sky); font-weight: 600; }
+  .sticky .m { font-size: 13px; color: var(--sky); margin-top: 2px; }
+  .sticky .a { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .est { display: block; width: 100%; text-align: left; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; }
+  .est:hover, .est:focus-visible { border-color: var(--blue); outline: none; }
+  .est .t { font-weight: 600; font-size: 17px; color: var(--navy); }
+  .est .d { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .est .o { margin-top: 6px; font-size: 14px; color: var(--ink); }
+  .empty { text-align: center; color: var(--muted); padding: 48px 12px; line-height: 1.5; }
+  .rates { font-size: 12.5px; color: var(--faint); text-align: center; margin-top: 18px; }
+
+  .pgrid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .pcard { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px; position: relative; }
+  .pcard.rec { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(0,131,195,.15); }
+  .pcard h3 { margin: 0 0 8px; font-size: 20px; color: var(--navy); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tag { font-size: 11px; font-weight: 700; color: #fff; background: var(--blue); border-radius: 999px; padding: 3px 10px; letter-spacing: .02em; }
+  .pcard .price { font-size: 32px; font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .pcard .mo { color: var(--blue); font-weight: 600; margin-top: 4px; }
+  .pcard ul { margin: 14px 0 0; padding-left: 18px; line-height: 1.45; }
+  .pcard .note { font-size: 13.5px; color: var(--muted); margin-top: 10px; }
+  .fine { font-size: 13px; color: var(--muted); text-align: center; margin: 16px 0 0; }
+
+  .modal { position: fixed; inset: 0; background: rgba(27,42,61,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  .modal.hidden { display: none; }
+  .sheet { background: #fff; width: 100%; max-width: 520px; border-radius: 16px 16px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); }
+  .sheet h3 { margin: 0 0 12px; font-size: 16px; color: var(--navy); }
+  .sheet .btn { width: 100%; margin-bottom: 8px; text-align: left; }
+  .sheet .cancel { text-align: center; color: var(--muted); border: 0; }
+
+  @media (max-width: 640px) {
+    .head { display: none; }
+    .row.cat { grid-template-columns: minmax(0,1fr) 84px minmax(0,1fr) 40px; grid-template-areas: "desc desc desc rm" "cost qty sell sell"; row-gap: 8px; align-items: end; }
+    .row.lab { grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 40px; grid-template-areas: "desc desc desc rm" "hrs ppl sell sell"; row-gap: 8px; align-items: end; }
+    .f.desc { grid-area: desc; } .f.cost { grid-area: cost; } .f.qty { grid-area: qty; } .f.hrs { grid-area: hrs; } .f.ppl { grid-area: ppl; }
+    .sell { grid-area: sell; align-self: end; padding-bottom: 12px; }
+    .remove { grid-area: rm; align-self: start; }
+    .f .lbl { display: block; }
+    .row { padding: 12px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="bar"><div class="inner" id="bar"></div></header>
+<main class="wrap" id="view"></main>
+<div class="modal hidden" id="modal" onclick="if(event.target===this)closeModal()"></div>
+
+<script>
+  // ---------- Rates and setup (edit here, then re-upload) ----------
+  const CONFIG = {
+    markups: { equipment: 0.80, materials: 0.60, other: 0.50 },
+    laborRate: 225,        // price per person-hour
+    laborCost: 86.90,      // installer pay + burden per hour; used only for the internal margin readout
+    marginFloor: 0.30,     // margin readout turns red below this
+    roundTo: 5,            // option totals round up to the nearest $5
+    financing: [           // placeholders until real plan terms are loaded
+      { label: '120 mo at 9.99% APR', apr: 9.99, months: 120 },
+      { label: '18 mo at 0% APR', apr: 0, months: 18 }
+    ],
+    presentFootnote: 'Financing subject to credit approval.',
+    // Quick-add lists. Leave empty to hide the picker. Items: { name, cost } — labor: { name, hours, people }
+    catalog: { equipment: [], materials: [], other: [], labor: [] },
+    // Starting points for a new option. Costs left blank on purpose; labor hours are editable defaults.
+    templates: [
+      { name: 'Furnace replacement', items: {
+        equipment: [ { desc: 'Furnace', qty: 1 } ],
+        materials: [ { desc: 'Furnace install kit (venting, gas, drain, electrical)', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
+        other:     [ { desc: 'Permit', qty: 1 }, { desc: 'Haul-away', qty: 1 } ],
+        labor:     [ { desc: 'Install crew', hours: 8, people: 2 } ] } },
+      { name: 'AC replacement', items: {
+        equipment: [ { desc: 'Condenser', qty: 1 }, { desc: 'Evaporator coil', qty: 1 } ],
+        materials: [ { desc: 'AC install kit (line set, pad, disconnect, whip, drain)', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
+        other:     [ { desc: 'Permit', qty: 1 }, { desc: 'Haul-away / refrigerant recovery', qty: 1 } ],
+        labor:     [ { desc: 'Install crew', hours: 8, people: 2 } ] } },
+      { name: 'Full system (furnace + AC)', items: {
+        equipment: [ { desc: 'Furnace', qty: 1 }, { desc: 'Condenser', qty: 1 }, { desc: 'Evaporator coil', qty: 1 } ],
+        materials: [ { desc: 'System install kit', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
+        other:     [ { desc: 'Permit', qty: 1 }, { desc: 'Haul-away / refrigerant recovery', qty: 1 } ],
+        labor:     [ { desc: 'Install crew', hours: 12, people: 2 } ] } },
+      { name: 'Hybrid system (heat pump + furnace)', items: {
+        equipment: [ { desc: 'Heat pump condenser', qty: 1 }, { desc: 'Furnace', qty: 1 }, { desc: 'Evaporator coil', qty: 1 } ],
+        materials: [ { desc: 'System install kit', qty: 1 }, { desc: 'Thermostat', qty: 1 } ],
+        other:     [ { desc: 'Permit', qty: 1 }, { desc: 'Haul-away / refrigerant recovery', qty: 1 } ],
+        labor:     [ { desc: 'Install crew', hours: 12, people: 2 } ] } }
+    ]
+  };
+  // -----------------------------------------------------------------
+
+  const CATS = [
+    { key: 'equipment', label: 'Equipment' },
+    { key: 'materials', label: 'Materials' },
+    { key: 'other', label: 'Other direct costs' }
+  ];
+  const OPTION_NAMES = ['Good', 'Better', 'Best'];
+  const STORE = 'hvac-estimator.v1';
+  const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = v => parseFloat(String(v ?? '').replace(/[^0-9.\-]/g, ''));
+  const fmt = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Math.round(n || 0));
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const dateStr = t => new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  // ---------- State ----------
+  function load() { try { const r = localStorage.getItem(STORE); if (r) { const d = JSON.parse(r); if (d && Array.isArray(d.estimates)) return d; } } catch (e) {} return { estimates: [] }; }
+  let db = load();
+  let ui = { screen: 'list', estId: null, opt: 0, internal: false };
+  let saveTimer;
+  function save() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(STORE, JSON.stringify(db)); } catch (e) {} }, 150); }
+  function touch() { const e = est(); if (e) e.updated = Date.now(); save(); }
+  const est = () => db.estimates.find(x => x.id === ui.estId);
+  const opt = () => est().options[ui.opt];
+
+  function newOption(name, tpl) {
+    const o = { id: uid(), name, includes: '', rec: false, discount: 0, rebate: 0, items: { equipment: [], materials: [], other: [], labor: [] } };
+    if (tpl) {
+      for (const c of CATS) o.items[c.key] = (tpl.items[c.key] || []).map(i => ({ id: uid(), desc: i.desc || '', cost: i.cost || 0, qty: i.qty ?? 1 }));
+      o.items.labor = (tpl.items.labor || []).map(i => ({ id: uid(), desc: i.desc || '', hours: i.hours || 0, people: i.people ?? 1 }));
+      if (tpl.includes) o.includes = tpl.includes;
+    }
+    return o;
+  }
+  function cloneOption(o, name) {
+    const c = JSON.parse(JSON.stringify(o)); c.id = uid(); c.name = name; c.rec = false;
+    for (const k in c.items) c.items[k].forEach(i => i.id = uid());
+    return c;
+  }
+  function nextName(e) { return OPTION_NAMES[e.options.length] || ('Option ' + (e.options.length + 1)); }
+
+  // ---------- Math ----------
+  const lineSell = (cat, it) => (num(it.cost) || 0) * (1 + CONFIG.markups[cat]) * (num(it.qty) || 0);
+  const lineCost = it => (num(it.cost) || 0) * (num(it.qty) || 0);
+  const laborHours = it => (num(it.hours) || 0) * (num(it.people) || 0);
+  const roundUp = n => CONFIG.roundTo > 0 ? Math.ceil(n / CONFIG.roundTo - 1e-9) * CONFIG.roundTo : n;
+  function calc(o) {
+    const r = { equipment: 0, materials: 0, other: 0, labor: 0, laborHours: 0, cost: 0 };
+    for (const c of CATS) for (const it of o.items[c.key]) { r[c.key] += lineSell(c.key, it); r.cost += lineCost(it); }
+    for (const it of o.items.labor) { const h = laborHours(it); r.laborHours += h; r.labor += h * CONFIG.laborRate; r.cost += h * CONFIG.laborCost; }
+    r.subtotal = r.equipment + r.materials + r.other + r.labor;
+    r.discount = num(o.discount) || 0; r.rebate = num(o.rebate) || 0;
+    r.total = Math.max(0, roundUp(r.subtotal) - r.discount);
+    r.net = Math.max(0, r.total - r.rebate);
+    r.gp = r.total - r.cost; r.gm = r.total > 0 ? r.gp / r.total : 0;
+    return r;
+  }
+  function payment(P, apr, months) { if (!P || !months) return 0; const r = apr / 100 / 12; return r === 0 ? P / months : P * r / (1 - Math.pow(1 + r, -months)); }
+  function bestPlan(P) { let best = null; for (const p of CONFIG.financing || []) { const m = payment(P, p.apr, p.months); if (P > 0 && (!best || m < best.monthly)) best = { plan: p, monthly: m }; } return best; }
+
+  // ---------- Navigation ----------
+  function render() { window.scrollTo(0, 0); if (ui.screen === 'edit') renderEditor(); else if (ui.screen === 'present') renderPresent(); else renderList(); }
+  function goList() { ui.screen = 'list'; ui.estId = null; render(); }
+  function goEdit() { ui.screen = 'edit'; render(); }
+  function goPresent() { ui.screen = 'present'; render(); }
+  function openEst(id) { ui.estId = id; ui.opt = 0; ui.screen = 'edit'; render(); }
+  function newEst() {
+    const e = { id: uid(), label: '', created: Date.now(), updated: Date.now(), options: [newOption('Good')] };
+    db.estimates.unshift(e); save(); openEst(e.id);
+  }
+  function delEst() { if (!confirm('Delete this estimate?')) return; db.estimates = db.estimates.filter(x => x.id !== ui.estId); save(); goList(); }
+  function toggleInternal() { ui.internal = !ui.internal; renderEditor(); }
+
+  // ---------- List ----------
+  function renderList() {
+    $('#bar').innerHTML = `<h1>HVAC Estimator</h1><button class="ibtn sky" onclick="newEst()">+ New</button>`;
+    const list = [...db.estimates].sort((a, b) => b.updated - a.updated);
+    const m = CONFIG.markups;
+    $('#view').innerHTML = (list.length ? list.map(e => `
+      <button class="est" onclick="openEst('${e.id}')">
+        <div class="t">${esc(e.label) || 'Untitled estimate'}</div>
+        <div class="d">${dateStr(e.updated)}</div>
+        <div class="o">${e.options.map(o => `${esc(o.name)} ${fmt(calc(o).total)}`).join(' &middot; ')}</div>
+      </button>`).join('') : `<div class="empty">No estimates yet.<br>Tap <b>+ New</b> to start one.</div>`) +
+      `<div class="rates">Equipment ${Math.round(m.equipment * 100)}% &middot; Materials ${Math.round(m.materials * 100)}% &middot; Other ${Math.round(m.other * 100)}% &middot; Labor $${CONFIG.laborRate}/hr</div>`;
+  }
+
+  // ---------- Editor ----------
+  function renderEditor() {
+    const e = est(); if (!e) return goList();
+    if (ui.opt >= e.options.length) ui.opt = e.options.length - 1;
+    const o = opt();
+    $('#bar').innerHTML = `
+      <button class="ibtn" onclick="goList()">&#8249; Estimates</button>
+      <div class="spacer"></div>
+      <button class="ibtn ${ui.internal ? 'on' : ''}" aria-label="Show cost and margin" onclick="toggleInternal()">${EYE}</button>
+      <button class="ibtn sky" onclick="goPresent()">Present</button>
+      <button class="ibtn" aria-label="More" onclick="openMenu()">&#8943;</button>`;
+    $('#view').innerHTML = `
+      <div class="card">
+        <label class="lbl" for="lab">Customer / job</label>
+        <input id="lab" value="${esc(e.label)}" placeholder="Name or address" autocomplete="off" oninput="est().label=this.value; touch()">
+      </div>
+      <div class="chips" id="chips">
+        ${e.options.map((op, i) => `<button class="chip ${i === ui.opt ? 'on' : ''}" onclick="switchOpt(${i})">${esc(op.name) || 'Option ' + (i + 1)}</button>`).join('')}
+        <button class="chip add" onclick="openAddOption()">+ Option</button>
+      </div>
+      <div class="card">
+        <h2>Option <span class="sub">${ui.opt + 1} of ${e.options.length}</span></h2>
+        <label class="lbl">Option name</label>
+        <input value="${esc(o.name)}" placeholder="Good, Better, Best..." autocomplete="off" oninput="opt().name=this.value; touch(); syncChip()">
+        <label class="lbl mt">What's included (customer-facing, one per line)</label>
+        <textarea placeholder="96% two-stage furnace&#10;Smart thermostat&#10;10-year parts warranty" oninput="opt().includes=this.value; touch()">${esc(o.includes)}</textarea>
+        <label class="chk"><input type="checkbox" ${o.rec ? 'checked' : ''} onchange="opt().rec=this.checked; touch()"> Mark as recommended</label>
+        <div class="btnrow">
+          <button class="btn" onclick="dupOption()">Duplicate option</button>
+          <button class="btn danger" onclick="delOption()">Delete</button>
+        </div>
+      </div>
+      ${CATS.map(c => catCard(c, o)).join('')}
+      ${laborCard(o)}
+      <div class="card">
+        <h2>Adjustments</h2>
+        <div class="two">
+          <div><label class="lbl">Discount ($)</label><input inputmode="decimal" value="${o.discount || ''}" placeholder="0" oninput="opt().discount=num(this.value)||0; touch(); updateTotals()"></div>
+          <div><label class="lbl">Rebates ($)</label><input inputmode="decimal" value="${o.rebate || ''}" placeholder="0" oninput="opt().rebate=num(this.value)||0; touch(); updateTotals()"></div>
+        </div>
+        <div class="hint">A discount lowers the price. Rebates don't change the price; they're shown as money back to the customer after the job.</div>
+      </div>
+      <div class="card" id="summary"></div>
+      <div class="sticky" id="sticky"></div>`;
+    updateTotals();
+  }
+
+  function catCard(c, o) {
+    const items = o.items[c.key];
+    const cat = CONFIG.catalog[c.key] || [];
+    return `<div class="card">
+      <h2>${c.label} ${ui.internal ? `<span class="sub">${Math.round(CONFIG.markups[c.key] * 100)}% markup</span>` : ''}</h2>
+      <div class="head cat"><div>Description</div><div>Cost</div><div>Qty</div><div style="text-align:right">Price</div><div></div></div>
+      ${items.map(it => catRow(c.key, it)).join('') || '<div class="none">Nothing added yet.</div>'}
+      <div class="btnrow">
+        <button class="btn ghost" onclick="addItem('${c.key}')">+ Add item</button>
+        ${cat.length ? `<select class="quick" onchange="quickAdd('${c.key}', this)"><option value="">Quick add&hellip;</option>${cat.map((q, i) => `<option value="${i}">${esc(q.name)}</option>`).join('')}</select>` : ''}
+      </div></div>`;
+  }
+  function catRow(cat, it) {
+    return `<div class="row cat" data-id="${it.id}">
+      <div class="f desc"><span class="lbl">Description</span><input value="${esc(it.desc)}" placeholder="Description" autocomplete="off" oninput="setItem('${cat}','${it.id}','desc',this.value)"></div>
+      <div class="f cost"><span class="lbl">Cost</span><input inputmode="decimal" value="${it.cost || ''}" placeholder="0.00" autocomplete="off" oninput="setItem('${cat}','${it.id}','cost',this.value)"></div>
+      <div class="f qty"><span class="lbl">Qty</span><input inputmode="decimal" value="${it.qty ?? 1}" autocomplete="off" oninput="setItem('${cat}','${it.id}','qty',this.value)"></div>
+      <div class="sell" data-sell>${fmt(lineSell(cat, it))}</div>
+      <button class="remove" onclick="removeItem('${cat}','${it.id}')" aria-label="Remove">&times;</button>
+    </div>`;
+  }
+  function laborCard(o) {
+    const items = o.items.labor;
+    const cat = CONFIG.catalog.labor || [];
+    return `<div class="card">
+      <h2>Labor <span class="sub">$${CONFIG.laborRate}/hr per person</span></h2>
+      <div class="head lab"><div>Description</div><div>Hours</div><div>People</div><div style="text-align:right">Price</div><div></div></div>
+      ${items.map(it => laborRow(it)).join('') || '<div class="none">Nothing added yet.</div>'}
+      <div class="btnrow">
+        <button class="btn ghost" onclick="addItem('labor')">+ Add labor</button>
+        ${cat.length ? `<select class="quick" onchange="quickAdd('labor', this)"><option value="">Quick add&hellip;</option>${cat.map((q, i) => `<option value="${i}">${esc(q.name)}</option>`).join('')}</select>` : ''}
+      </div></div>`;
+  }
+  function laborRow(it) {
+    return `<div class="row lab" data-id="${it.id}">
+      <div class="f desc"><span class="lbl">Description</span><input value="${esc(it.desc)}" placeholder="Install crew" autocomplete="off" oninput="setItem('labor','${it.id}','desc',this.value)"></div>
+      <div class="f hrs"><span class="lbl">Hours</span><input inputmode="decimal" value="${it.hours || ''}" placeholder="0" autocomplete="off" oninput="setItem('labor','${it.id}','hours',this.value)"></div>
+      <div class="f ppl"><span class="lbl">People</span><input inputmode="numeric" value="${it.people ?? 1}" autocomplete="off" oninput="setItem('labor','${it.id}','people',this.value)"></div>
+      <div class="sell" data-sell>${fmt(laborHours(it) * CONFIG.laborRate)}</div>
+      <button class="remove" onclick="removeItem('labor','${it.id}')" aria-label="Remove">&times;</button>
+    </div>`;
+  }
+
+  function updateTotals() {
+    const o = opt(); const r = calc(o); const fin = bestPlan(r.total);
+    const gmClass = r.total > 0 ? (r.gm < CONFIG.marginFloor ? 'warn' : 'good') : '';
+    $('#summary').innerHTML = `<h2>Summary <span class="sub">${esc(o.name)}</span></h2><div class="sum">
+      <div class="k">Equipment</div><div class="v">${fmt(r.equipment)}</div>
+      <div class="k">Materials</div><div class="v">${fmt(r.materials)}</div>
+      <div class="k">Other direct costs</div><div class="v">${fmt(r.other)}</div>
+      <div class="k">Labor <span class="sub">${+r.laborHours.toFixed(1)} hrs</span></div><div class="v">${fmt(r.labor)}</div>
+      ${r.discount ? `<div class="k">Discount</div><div class="v">&minus;${fmt(r.discount)}</div>` : ''}
+      <div class="k tot">Total</div><div class="v tot">${fmt(r.total)}</div>
+      ${fin ? `<div class="k">Monthly from</div><div class="v">${fmt(fin.monthly)}/mo <span class="sub">${esc(fin.plan.label)}</span></div>` : ''}
+      ${r.rebate ? `<div class="k">After rebates</div><div class="v">${fmt(r.net)}</div>` : ''}
+      ${ui.internal ? `
+        <div class="k int">Cost</div><div class="v int">${fmt(r.cost)}</div>
+        <div class="k int">Gross profit</div><div class="v int">${fmt(r.gp)}</div>
+        <div class="k int">Gross margin</div><div class="v int ${gmClass}">${(r.gm * 100).toFixed(1)}%</div>` : ''}
+    </div>`;
+    $('#sticky').innerHTML = `<div><div class="l">${esc(o.name) || 'Option'}</div>${fin ? `<div class="m">from ${fmt(fin.monthly)}/mo</div>` : ''}</div><div class="a">${fmt(r.total)}</div>`;
+  }
+
+  // ---------- Editor actions ----------
+  function switchOpt(i) { ui.opt = i; renderEditor(); }
+  function syncChip() { const c = $('#chips .chip.on'); if (c) c.textContent = opt().name || 'Option ' + (ui.opt + 1); }
+  function setItem(cat, id, k, v) {
+    const it = opt().items[cat].find(x => x.id === id); if (!it) return;
+    it[k] = k === 'desc' ? v : (num(v) || 0); touch();
+    const cell = document.querySelector(`.row[data-id="${id}"] [data-sell]`);
+    if (cell) cell.textContent = fmt(cat === 'labor' ? laborHours(it) * CONFIG.laborRate : lineSell(cat, it));
+    updateTotals();
+  }
+  function addItem(cat, preset) {
+    const it = cat === 'labor'
+      ? { id: uid(), desc: preset ? preset.name : '', hours: preset ? preset.hours || 0 : 0, people: preset ? preset.people ?? 1 : 1 }
+      : { id: uid(), desc: preset ? preset.name : '', cost: preset ? preset.cost || 0 : 0, qty: 1 };
+    opt().items[cat].push(it); touch(); renderEditor();
+    const row = document.querySelector(`.row[data-id="${it.id}"]`);
+    if (row) { row.scrollIntoView({ block: 'center' }); if (!preset) row.querySelector('input').focus(); }
+  }
+  function quickAdd(cat, sel) { const q = (CONFIG.catalog[cat] || [])[sel.value]; sel.value = ''; if (q) addItem(cat, q); }
+  function removeItem(cat, id) { const items = opt().items[cat]; const i = items.findIndex(x => x.id === id); if (i > -1) items.splice(i, 1); touch(); renderEditor(); }
+  function dupOption() { const e = est(); e.options.splice(ui.opt + 1, 0, cloneOption(opt(), nextName(e))); ui.opt++; touch(); renderEditor(); }
+  function delOption() {
+    const e = est();
+    if (e.options.length === 1) { if (!confirm('Clear everything in this option?')) return; e.options[0] = newOption(e.options[0].name); }
+    else { if (!confirm('Delete this option?')) return; e.options.splice(ui.opt, 1); ui.opt = Math.max(0, ui.opt - 1); }
+    touch(); renderEditor();
+  }
+  function addOption(kind, idx) {
+    const e = est(); const name = nextName(e);
+    let o;
+    if (kind === 'dup') o = cloneOption(opt(), name);
+    else if (kind === 'tpl') o = newOption(name, CONFIG.templates[idx]);
+    else o = newOption(name);
+    e.options.push(o); ui.opt = e.options.length - 1; touch(); closeModal(); renderEditor();
+  }
+
+  // ---------- Sheets ----------
+  function sheet(html) { $('#modal').innerHTML = `<div class="sheet">${html}<button class="btn cancel" onclick="closeModal()">Cancel</button></div>`; $('#modal').classList.remove('hidden'); }
+  function closeModal() { $('#modal').classList.add('hidden'); }
+  function openAddOption() {
+    sheet(`<h3>Add an option</h3>
+      <button class="btn" onclick="addOption('dup')">Duplicate "${esc(opt().name) || 'current option'}"</button>
+      ${CONFIG.templates.map((t, i) => `<button class="btn" onclick="addOption('tpl',${i})">${esc(t.name)}</button>`).join('')}
+      <button class="btn" onclick="addOption('blank')">Blank option</button>`);
+  }
+  function openMenu() {
+    sheet(`<h3>${esc(est().label) || 'This estimate'}</h3>
+      <button class="btn" onclick="copySummary()">Copy summary</button>
+      ${navigator.share ? `<button class="btn" onclick="shareSummary()">Share summary&hellip;</button>` : ''}
+      <button class="btn danger" onclick="closeModal(); delEst()">Delete estimate</button>`);
+  }
+
+  // ---------- Present + summary text ----------
+  function renderPresent() {
+    const e = est(); if (!e) return goList();
+    $('#bar').innerHTML = `<button class="ibtn" onclick="goEdit()">&#8249; Back</button><h1>${esc(e.label) || 'Your options'}</h1><button class="ibtn sky" onclick="copySummary()">Copy</button>`;
+    $('#view').innerHTML = `<div class="pgrid">${e.options.map((o, i) => {
+      const r = calc(o); const fin = bestPlan(r.total);
+      const inc = (o.includes || '').split('\n').map(s => s.trim()).filter(Boolean);
+      return `<div class="pcard ${o.rec ? 'rec' : ''}">
+        <h3>${esc(o.name) || 'Option ' + (i + 1)} ${o.rec ? '<span class="tag">RECOMMENDED</span>' : ''}</h3>
+        <div class="price">${fmt(r.total)}</div>
+        ${fin ? `<div class="mo">from ${fmt(fin.monthly)}/mo &middot; ${esc(fin.plan.label)}</div>` : ''}
+        ${inc.length ? `<ul>${inc.map(s => `<li>${esc(s)}</li>`).join('')}</ul>` : ''}
+        ${r.discount ? `<div class="note">Includes ${fmt(r.discount)} discount</div>` : ''}
+        ${r.rebate ? `<div class="note">Rebates available: ${fmt(r.rebate)} back after installation</div>` : ''}
+      </div>`; }).join('')}</div>
+      ${CONFIG.presentFootnote ? `<p class="fine">${esc(CONFIG.presentFootnote)}</p>` : ''}`;
+  }
+  function summaryText() {
+    const e = est(); const out = [];
+    out.push((e.label || 'Estimate') + ' - ' + dateStr(Date.now()));
+    for (const o of e.options) {
+      const r = calc(o); const fin = bestPlan(r.total);
+      out.push('', (o.name || 'Option').toUpperCase() + (o.rec ? ' (recommended)' : '') + ' - ' + fmt(r.total) + (fin ? ' (from ' + fmt(fin.monthly) + '/mo, ' + fin.plan.label + ')' : ''));
+      const inc = (o.includes || '').split('\n').map(s => s.trim()).filter(Boolean);
+      inc.forEach(s => out.push('  - ' + s));
+      for (const c of CATS) for (const it of o.items[c.key]) if (it.desc) out.push('  ' + it.desc + (num(it.qty) > 1 ? ' x' + it.qty : ''));
+      for (const it of o.items.labor) if (it.desc) out.push('  ' + it.desc + ' (' + laborHours(it) + ' hrs)');
+      if (r.discount) out.push('  Discount: -' + fmt(r.discount));
+      if (r.rebate) out.push('  Rebates: ' + fmt(r.rebate) + ' back after installation');
+    }
+    if (CONFIG.presentFootnote) out.push('', CONFIG.presentFootnote);
+    return out.join('\n');
+  }
+  async function copySummary() {
+    closeModal();
+    try { await navigator.clipboard.writeText(summaryText()); alert('Summary copied.'); }
+    catch (e) { prompt('Copy this summary:', summaryText()); }
+  }
+  async function shareSummary() { closeModal(); try { await navigator.share({ title: est().label || 'Estimate', text: summaryText() }); } catch (e) {} }
+
+  render();
+</script>
+
+</body>
+</html>
