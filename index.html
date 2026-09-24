@@ -59,6 +59,9 @@
   .mt { margin-top: 12px; }
   .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   .inline { display: flex; gap: 10px; }
+  .mb { margin-bottom: 10px; }
+  select { width: 100%; height: 46px; border: 1px solid transparent; border-radius: 10px; background: var(--field); padding: 0 32px 0 12px; appearance: none; -webkit-appearance: none; background-repeat: no-repeat; background-position: right 12px center; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235B6B82' stroke-width='1.8'/%3E%3C/svg%3E"); }
+  select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,131,195,.18); }
   .hint { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
   .hint b { color: var(--head); font-weight: 600; }
   .cap { font-size: 12.5px; color: var(--muted); margin-top: 6px; text-align: center; }
@@ -152,7 +155,8 @@
   .tag.warn { color: #fff; background: var(--amber); }
   .checks { margin-top: 10px; }
   .checks div { font-size: 13px; color: var(--amber); font-weight: 600; margin-top: 4px; }
-  .foot { display: flex; justify-content: center; gap: 14px; margin-bottom: 18px; }
+  .foot { display: flex; justify-content: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+  .sh { font-size: 12.5px; font-weight: 600; color: var(--muted); margin: 6px 4px 8px; }
   .foot .tbtn { margin: 0; height: 36px; font-size: 14px; }
 
   /* Sold */
@@ -216,8 +220,14 @@
     markups: { equipment: 1.00, materials: 1.50, other: 1.00 },
     laborRate: 175,        // price per person-hour
     laborCost: 86.90,      // cost per person-hour, used for the cost and margin readout
-    defaults: { commission: 6, incentive: 2 },   // % of price; starting values for each new option, editable on the phone
-    warranty: 1,                                 // % of price, fixed; not editable on the phone
+    // Comp loads by lead type, % of price, counted as cost. Warranty is fixed.
+    leads: [
+      { key: 'tech', label: 'Tech lead', commission: 6.5, incentive: 1.25 },
+      { key: 'cold', label: 'Cold lead', commission: 7, incentive: 0 }
+    ],
+    warranty: 1,
+    // Current specials the advisor can pick from: { name, amount }. Specials reduce the price but are not limited by the discount floors.
+    specials: [],
     percentsInMargin: true,  // commission/incentive/warranty count in cost, so gross margin (and the floors) are after them
     // Discount floors by install backlog: the lowest gross margin (after commission, incentive, warranty) each tier may go to. null = book price only.
     enforce: true,           // true: show Allowed / Blocked against the tier's floor. false: just show the max.
@@ -271,7 +281,7 @@
     { key: 'other', label: 'Other direct costs' }
   ];
   const OPTION_NAMES = ['Good', 'Better', 'Best'];
-  const STORE = 'hvac-estimator.v8';
+  const STORE = 'hvac-estimator.v9';
 
   // ---------- State: a list of estimates, kept on this device only ----------
   const $ = (s, el = document) => el.querySelector(s);
@@ -282,11 +292,16 @@
   const dateStr = t => new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   function load() {
-    try { const r = localStorage.getItem(STORE); if (r) { const d = JSON.parse(r); if (d && Array.isArray(d.estimates)) return d; } } catch (e) {}
-    return { estimates: [] };
+    try { const r = localStorage.getItem(STORE); if (r) { const d = JSON.parse(r); if (d && Array.isArray(d.estimates)) { d.templates = d.templates || []; return d; } } } catch (e) {}
+    return { estimates: [], templates: [] };
   }
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});   // ask the phone not to evict this app's data
   let db = load();
-  for (const e of db.estimates) if (e.sold && !e.crm) { e.crm = { at: e.sold.at, options: [{ name: e.sold.name, price: e.sold.price }] }; delete e.sold; }
+  for (const e of db.estimates) {
+    if (e.sold && !e.crm) { e.crm = { at: e.sold.at, options: [{ name: e.sold.name, price: e.sold.price }] }; delete e.sold; }
+    if (!e.lead) e.lead = CONFIG.leads[0].key;
+  }
+  const leadOf = e => CONFIG.leads.find(l => l.key === e.lead) || CONFIG.leads[0];
   let ui = { screen: 'list', estId: null, opt: 0 };
   let saveTimer;
   function save() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(STORE, JSON.stringify(db)); } catch (e) {} }, 150); }
@@ -295,8 +310,7 @@
   function touch() { const e = est(); if (e) e.updated = Date.now(); save(); }
 
   function newOption(name, tpl) {
-    const o = { id: uid(), name, items: { equipment: [], materials: [], other: [], labor: [] },
-      commission: CONFIG.defaults.commission, incentive: CONFIG.defaults.incentive, discount: 0 };
+    const o = { id: uid(), name, items: { equipment: [], materials: [], other: [], labor: [] }, discount: 0, special: 0, specialName: '', rebate: 0 };
     if (tpl) {
       for (const c of CATS) o.items[c.key] = (tpl.items[c.key] || []).map(i => ({ id: uid(), desc: i.desc || '', cost: i.cost || 0, qty: i.qty ?? 1 }));
       o.items.labor = (tpl.items.labor || []).map(i => ({ id: uid(), desc: i.desc || '', hours: i.hours || 0, people: i.people ?? 1 }));
@@ -323,17 +337,21 @@
     const tier = tierOf(e);
     if (priced <= 0) return { empty: true, tier, price: 0, list: 0, cost: 0, gp: 0, gm: 0, hours, disc: 0, maxDisc: 0, status: '' };
     const permit = num(e.permit) || 0;
-    const kAll = pct(o.commission) + pct(o.incentive) + pct(CONFIG.warranty);   // costs that scale with the price
+    const lead = leadOf(e);
+    const kAll = pct(lead.commission) + pct(lead.incentive) + pct(CONFIG.warranty);   // costs that scale with the price
     const k = CONFIG.percentsInMargin ? kAll : 0;
     const fixed = direct + permit;
     const list = roundUp(priced + permit);
-    const entered = Math.min(Math.max(num(o.discount) || 0, 0), list);
-    const price = entered > 0 ? roundNear(list - entered) : list;   // final price keeps a $5 ending
-    const disc = list - price;                                     // the discount actually applied
+    const special = Math.min(Math.max(num(o.special) || 0, 0), list);
+    const entered = Math.min(Math.max(num(o.discount) || 0, 0), list - special);
+    const price = (entered > 0 || special > 0) ? roundNear(list - special - entered) : list;   // final price keeps a $5 ending
+    const disc = list - special - price;                                                      // the discount actually applied
+    const rebate = Math.max(num(o.rebate) || 0, 0);
     const cost = fixed + price * k;
     const gm = price > 0 ? (price - cost) / price : 0;
     const listGm = (list - fixed - list * k) / list;
     const pctCosts = price * kAll;
+    const noSpecial = list - disc, gmNoSpecial = noSpecial > 0 ? 1 - k - fixed / noSpecial : 0;   // the floor looks at the discount only
     // Max discount for the tier, rounded to the nearest $10 (see maxRoundTo)
     let maxDisc = 0, belowFloor = false, floorPct = '';
     if (tier.floor != null) {
@@ -346,7 +364,9 @@
     const noDisc = tier.floor == null;
     const over = disc > maxDisc + 0.005;
     const status = !CONFIG.enforce || disc <= 0 ? '' : over ? 'bad' : tier.manager ? 'warn' : 'good';
-    return { tier, price, list, cost, gp: price - cost, gm, listGm, hours, disc, entered, maxDisc, noDisc, belowFloor, floorPct, over, status, pctCosts };
+    const floor = tier.floor == null ? null : Math.max(tier.floor, CONFIG.hardFloor || 0);
+    const specialBelow = special > 0 && floor != null && gm < floor - 1e-9 && gmNoSpecial >= floor - 1e-9;
+    return { tier, lead, price, list, cost, gp: price - cost, gm, listGm, hours, disc, entered, special, rebate, maxDisc, noDisc, belowFloor, floorPct, over, status, pctCosts, specialBelow };
   }
   const gmText = r => r.empty ? '' : (r.gm * 100).toFixed(1) + '%';
   const pctOf = (a, b) => b > 0 ? (a / b * 100).toFixed(1) + '%' : '';
@@ -356,7 +376,7 @@
   function goList() { ui.screen = 'list'; ui.estId = null; render(); }
   function openEst(id) { ui.estId = id; ui.opt = 0; ui.screen = 'edit'; render(); }
   function newEstimate() {
-    const e = { id: uid(), label: '', created: Date.now(), updated: Date.now(), permit: 0, schedule: CONFIG.schedule[0].key, options: [newOption('Good')] };
+    const e = { id: uid(), label: '', created: Date.now(), updated: Date.now(), permit: 0, schedule: CONFIG.schedule[0].key, lead: CONFIG.leads[0].key, options: [newOption('Good')] };
     db.estimates.unshift(e); save(); openEst(e.id); openAddOption(true);
   }
   function delEstimate() { ask('Delete this estimate?', 'Delete estimate', () => { db.estimates = db.estimates.filter(x => x.id !== ui.estId); save(); goList(); }); }
@@ -390,7 +410,8 @@
         <span class="chev">&#8250;</span>
       </button>`).join('') : `<div class="empty"><div class="big">No estimates yet</div>Start one and pick a template.</div>`)
       + `<div class="note">Rates updated ${esc(CONFIG.ratesUpdated)} &middot; Estimates are stored on this device only.</div>
-         <div class="foot"><button class="tbtn" onclick="checkUpdates()">Check for updates</button></div>`
+         <div class="foot"><button class="tbtn" onclick="backup()">Back up</button><button class="tbtn" onclick="restore()">Restore</button><button class="tbtn" onclick="checkUpdates()">Check for updates</button></div>
+         <input type="file" id="restorefile" accept=".json,application/json" style="display:none" onchange="restoreFile(this)">`
       + `<button class="fab" onclick="newEstimate()">New estimate</button>`;
   }
   async function checkUpdates() {
@@ -417,7 +438,10 @@
           <label class="lbl mt">Install schedule</label>
           <div class="seg" id="sched">${CONFIG.schedule.map(t => `<button type="button" data-key="${t.key}" class="${t.key === e.schedule ? 'on' : ''}" onclick="setSched('${t.key}')">${esc(t.label)}</button>`).join('')}</div>
           <div class="cap" id="schedcap">${esc(tierOf(e).days)}</div>
-          <button class="tbtn" onclick="dupEstimate()">Duplicate estimate</button>
+          <label class="lbl mt">Lead</label>
+          <div class="seg" id="lead">${CONFIG.leads.map(l => `<button type="button" data-key="${l.key}" class="${l.key === e.lead ? 'on' : ''}" onclick="setLead('${l.key}')">${esc(l.label)}</button>`).join('')}</div>
+          <div class="cap" id="leadcap">${leadCap(e)}</div>
+          <div class="btnrow"><button class="btn" onclick="dupEstimate()">Duplicate estimate</button><button class="btn" onclick="saveTemplate()">Save as template</button></div>
         </div>
         <div class="segrow">
           <div class="seg" id="chips">${e.options.map((op, i) => `<button type="button" class="chip ${i === ui.opt ? 'on' : ''}" onclick="switchOpt(${i})">${esc(op.name) || 'Option ' + (i + 1)}</button>`).join('')}</div>
@@ -443,12 +467,8 @@
         </div>
         <div class="card">
           <h2>Commission, incentive, warranty</h2>
-          <div class="three">
-            <div><label class="lbl">Commission %</label><input inputmode="decimal" value="${o.commission ?? ''}" placeholder="0" autocomplete="off" oninput="opt().commission=num(this.value)||0; touch(); updateTotal()"></div>
-            <div><label class="lbl">Incentive %</label><input inputmode="decimal" value="${o.incentive ?? ''}" placeholder="0" autocomplete="off" oninput="opt().incentive=num(this.value)||0; touch(); updateTotal()"></div>
-            <div><label class="lbl">Warranty % <span class="sub">fixed</span></label><input value="${CONFIG.warranty}" disabled></div>
-          </div>
-          <div class="hint">Percent of the price, counted as cost. They lower the margin; they don't change the price.</div>
+          <div class="three" id="comp">${compFields(e)}</div>
+          <div class="hint">Set by the lead type. Percent of the price, counted as cost; they lower the margin and don't change the price.</div>
         </div>
         <div class="card">
           <h2>Discount</h2>
@@ -459,6 +479,16 @@
             <button class="btn" type="button" onclick="useMax()">Use max</button>
           </div>
           <div class="hint" id="dstatus"></div>
+          <label class="lbl mt">Current special</label>
+          ${CONFIG.specials.length ? `<select class="mb" onchange="pickSpecial(this)"><option value="">None</option>${CONFIG.specials.map((sp, i) => `<option value="${i}" ${o.specialName === sp.name ? 'selected' : ''}>${esc(sp.name)} &mdash; ${fmt(sp.amount)}</option>`).join('')}<option value="custom" ${o.special && !CONFIG.specials.some(sp => sp.name === o.specialName) ? 'selected' : ''}>Other</option></select>` : ''}
+          <div class="inline">
+            <input id="specname" value="${esc(o.specialName)}" placeholder="Special name" autocomplete="off" oninput="opt().specialName=this.value; touch(); updateTotal()">
+            <input id="spec" inputmode="decimal" value="${o.special || ''}" placeholder="$ off" autocomplete="off" style="max-width:120px" oninput="opt().special=num(this.value)||0; touch(); updateTotal()">
+          </div>
+          <div class="hint">Specials come off the price on top of the discount and aren't limited by the floor.</div>
+          <label class="lbl mt">Utility or consumer rebates ($)</label>
+          <input inputmode="decimal" value="${o.rebate || ''}" placeholder="0" autocomplete="off" oninput="opt().rebate=num(this.value)||0; touch(); updateTotal()">
+          <div class="hint">Paid to the customer after the install. Shown as an after-rebate figure; doesn't change the price or the margin.</div>
         </div>
         <div class="card" id="margin"></div>
         <div class="card" id="soldcard"></div>
@@ -519,13 +549,17 @@
       else if (t.manager) st += `<span class="warn">Allowed with manager approval.</span>`;
       else st += `<span class="good">Allowed.</span>`;
     }
+    if (r.specialBelow) st += ` <span class="sub">The special takes this option below the ${r.floorPct} floor; specials aren't limited by it.</span>`;
     $('#dstatus').innerHTML = st;
     $('#margin').innerHTML = `<h2>Cost and margin <span class="sub">${name}</span></h2><div class="sum">
       <div class="k">Cost <span class="sub">${+r.hours.toFixed(1)} labor hrs${r.empty ? '' : ` &middot; incl. ${fmt(r.pctCosts)} commission, incentive, warranty`}</span></div><div class="v">${fmt(r.cost)}</div>
-      ${r.disc > 0 ? `<div class="k">Book price</div><div class="v">${fmt(r.list)}</div><div class="k">Discount</div><div class="v">&minus;${fmt(r.disc)} <span class="sub">${pctOf(r.disc, r.list)}</span></div>` : ''}
+      ${r.disc > 0 || r.special > 0 ? `<div class="k">Book price</div><div class="v">${fmt(r.list)}</div>` : ''}
+      ${r.disc > 0 ? `<div class="k">Discount</div><div class="v">&minus;${fmt(r.disc)} <span class="sub">${pctOf(r.disc, r.list)}</span></div>` : ''}
+      ${r.special > 0 ? `<div class="k">Special <span class="sub">${esc(o.specialName)}</span></div><div class="v">&minus;${fmt(r.special)}</div>` : ''}
       <div class="k">Price</div><div class="v">${fmt(r.price)}</div>
       <div class="k">Gross profit</div><div class="v">${fmt(r.gp)}</div>
       <div class="k big">Gross margin</div><div class="v big ${r.status}">${r.empty ? '&ndash;' : gmText(r)}</div>
+      ${r.rebate > 0 ? `<div class="k">Rebates</div><div class="v">&minus;${fmt(r.rebate)}</div><div class="k">Customer pays after rebates</div><div class="v">${fmt(Math.max(0, r.price - r.rebate))}</div>` : ''}
     </div>`;
     const g = CONFIG.guard, checks = [];
     for (const c of CATS) for (const it of o.items[c.key]) {
@@ -542,6 +576,21 @@
   function useMax() { const r = calc(est(), opt()); opt().discount = r.maxDisc; touch(); const i = $('#disc'); if (i) i.value = r.maxDisc || ''; updateTotal(); }
 
   // ---------- Editor actions ----------
+  const leadCap = e => { const l = leadOf(e); return `${l.commission}% commission${l.incentive ? ` + ${l.incentive}% incentive` : ''} + ${CONFIG.warranty}% warranty`; };
+  const compFields = e => { const l = leadOf(e); return `<div><label class="lbl">Commission %</label><input value="${l.commission}" disabled></div><div><label class="lbl">Incentive %</label><input value="${l.incentive}" disabled></div><div><label class="lbl">Warranty %</label><input value="${CONFIG.warranty}" disabled></div>`; };
+  function setLead(key) {
+    est().lead = key; touch();
+    document.querySelectorAll('#lead button').forEach(b => b.classList.toggle('on', b.dataset.key === key));
+    const cap = $('#leadcap'); if (cap) cap.textContent = leadCap(est());
+    const comp = $('#comp'); if (comp) comp.innerHTML = compFields(est());
+    updateTotal();
+  }
+  function pickSpecial(sel) {
+    const o = opt();
+    if (sel.value === '' ) { o.special = 0; o.specialName = ''; }
+    else if (sel.value !== 'custom') { const sp = CONFIG.specials[sel.value]; o.special = sp.amount; o.specialName = sp.name; }
+    touch(); const n = $('#specname'), a = $('#spec'); if (n) n.value = o.specialName; if (a) a.value = o.special || ''; updateTotal();
+  }
   function switchOpt(i) { ui.opt = i; renderEditor(); }
   function setSched(key) {
     est().schedule = key; touch();
@@ -699,7 +748,10 @@
       need(LH * 3); rule(y + LH * 0.7);
       T(M, y, 'Book price', 'F3', 10); R(W - M, y, money(r.list), 'F2', 10); y -= LH;
       if (r.disc > 0) { T(M, y, 'Discount', 'F3', 10); R(W - M, y, '-' + money(r.disc), 'F2', 10); y -= LH; }
-      T(M, y, 'Price', 'F3', 11); R(W - M, y, money(r.price), 'F3', 11); y -= LH * 1.8;
+      if (r.special > 0) { T(M, y, 'Special' + (o.specialName ? ' - ' + o.specialName : ''), 'F3', 10); R(W - M, y, '-' + money(r.special), 'F2', 10); y -= LH; }
+      T(M, y, 'Price', 'F3', 11); R(W - M, y, money(r.price), 'F3', 11); y -= LH;
+      if (r.rebate > 0) { need(LH * 2); T(M, y, 'Rebates (paid to customer after install)', 'F1', 10); R(W - M, y, '-' + money(r.rebate), 'F2', 10); y -= LH; T(M, y, 'After rebates', 'F1', 10); R(W - M, y, money(Math.max(0, r.price - r.rebate)), 'F2', 10); y -= LH; }
+      y -= LH * 0.8;
     });
     newPage();
     const objs = [];
@@ -738,10 +790,60 @@
   function ask(title, yesLabel, fn) { pending = fn; sheet(`<h3>${esc(title)}</h3><button class="btn danger" onclick="confirmAsk()">${esc(yesLabel)}</button>`); }
   function confirmAsk() { const fn = pending; pending = null; closeModal(); if (fn) fn(); }
   function openAddOption(first) {
+    const mine = db.templates || [];
     sheet(`<h3>${first ? 'Start with' : 'Add an option'}</h3>
+      ${first && mine.length ? `<div class="sh">My templates</div>${mine.map(t => `<button class="btn" onclick="useTemplate('${t.id}')">${esc(t.name)} <span class="sub">${t.options.length} option${t.options.length === 1 ? '' : 's'}</span></button>`).join('')}<div class="sh">Templates</div>` : ''}
       ${first ? '' : `<button class="btn" onclick="addOption('dup')">Duplicate "${esc(opt().name) || 'current option'}"</button>`}
       ${CONFIG.templates.map((t, i) => `<button class="btn" onclick="addOption('tpl',${i},${!!first})">${esc(t.name)}</button>`).join('')}
-      <button class="btn" onclick="addOption('blank',0,${!!first})">Blank option</button>`);
+      <button class="btn" onclick="addOption('blank',0,${!!first})">Blank option</button>
+      ${first && mine.length ? `<button class="btn" onclick="manageTemplates()">Manage my templates</button>` : ''}`);
+  }
+  function cleanOptions(options) {
+    return options.map(o => { const c = JSON.parse(JSON.stringify(o)); c.id = uid(); c.discount = 0; c.special = 0; c.specialName = ''; c.rebate = 0; for (const k in c.items) c.items[k].forEach(i => i.id = uid()); return c; });
+  }
+  function saveTemplate() {
+    const e = est();
+    sheet(`<h3>Save this estimate as a template</h3>
+      <input id="tplname" value="${esc(e.label ? e.label + ' template' : '')}" placeholder="Template name" autocomplete="off" style="margin-bottom:10px">
+      <button class="btn" onclick="confirmSaveTemplate()">Save template</button>`);
+    setTimeout(() => { const i = $('#tplname'); if (i) { i.focus(); i.select(); } }, 50);
+  }
+  function confirmSaveTemplate() {
+    const e = est(), name = ($('#tplname').value || '').trim() || 'My template';
+    db.templates.unshift({ id: uid(), name, created: Date.now(), options: cleanOptions(e.options) }); save(); closeModal();
+  }
+  function useTemplate(id) {
+    const t = db.templates.find(x => x.id === id); if (!t) return;
+    const e = est(); e.options = cleanOptions(t.options); ui.opt = 0; touch(); closeModal(); renderEditor();
+  }
+  function manageTemplates() {
+    sheet(`<h3>My templates</h3>${db.templates.map(t => `<div class="inline" style="margin-bottom:8px"><button class="btn" style="flex:1;margin:0" onclick="useTemplate('${t.id}')">${esc(t.name)}</button><button class="btn danger" style="margin:0;background:var(--card)" onclick="deleteTemplate('${t.id}')">Delete</button></div>`).join('')}`);
+  }
+  function deleteTemplate(id) { ask('Delete this template?', 'Delete template', () => { db.templates = db.templates.filter(t => t.id !== id); save(); if (db.templates.length) manageTemplates(); }); }
+
+  async function backup() {
+    const name = 'estimates-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    const blob = new Blob([JSON.stringify({ app: 'hvac-estimator', exported: Date.now(), estimates: db.estimates, templates: db.templates })], { type: 'application/json' });
+    try {
+      const file = new File([blob], name, { type: 'application/json' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; }
+    } catch (err) { if (err && err.name === 'AbortError') return; }
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+  function restore() { const i = $('#restorefile'); if (i) { i.value = ''; i.click(); } }
+  function restoreFile(input) {
+    const f = input.files && input.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const d = JSON.parse(rd.result); if (!d || !Array.isArray(d.estimates)) throw 0;
+        let added = 0, updated = 0;
+        for (const e of d.estimates) { const cur = db.estimates.find(x => x.id === e.id); if (!cur) { db.estimates.push(e); added++; } else if ((e.updated || 0) > (cur.updated || 0)) { Object.assign(cur, e); updated++; } }
+        for (const t of d.templates || []) if (!db.templates.find(x => x.id === t.id)) db.templates.push(t);
+        save(); render(); sheet(`<h3>Restored: ${added} added, ${updated} updated.</h3>`);
+      } catch (e) { sheet('<h3>That file is not an estimates backup.</h3>'); }
+    };
+    rd.readAsText(f);
   }
 
   render();
